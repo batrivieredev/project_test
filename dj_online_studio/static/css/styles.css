@@ -1,0 +1,258 @@
+body {
+    margin: 0;
+    padding: 20px;
+    background: #1a1a1a;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+}
+
+.dj-deck {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.deck-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.deck {
+    background: #333;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Waveform section */
+.waveform-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.waveform {
+    width: 100%;
+    height: 120px;
+    background: #111;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.waveform-canvas {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+}
+
+/* Deck info and controls */
+.deck-info {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.turntable {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    background: #222;
+    border-radius: 50%;
+    border: 15px solid #444;
+}
+
+.platter {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at center, #333 0%, #333 45%, transparent 45.1%),
+        repeating-conic-gradient(
+            from 0deg,
+            #444 0deg 30deg,
+            #333 30deg 60deg
+        );
+    animation: spin 2s linear infinite paused;
+}
+
+.playing .platter {
+    animation-play-state: running;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+.spindle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 15px;
+    height: 15px;
+    background: #666;
+    border-radius: 50%;
+    border: 2px solid #888;
+}
+
+.track-info {
+    background: #222;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.track-info div {
+    margin: 3px 0;
+}
+
+.bpm {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #00ff00;
+}
+
+.time-display {
+    display: flex;
+    justify-content: space-between;
+    font-family: monospace;
+    font-size: 1.2em;
+    margin: 5px 0;
+    color: #00ff00;
+}
+
+.controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: inline-block;
+    padding: 8px 15px;
+    background: #4CAF50;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.slider {
+    width: 100%;
+    margin: 5px 0;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #666;
+    border-radius: 2px;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.volume-meters {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.volume-display {
+    height: 100px;
+    width: 20px;
+    background: #000;
+    border: 2px solid #00ff00;
+    position: relative;
+}
+
+.volume-level {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: #00ff00;
+    transition: height 0.1s;
+}
+
+button {
+    padding: 8px 15px;
+    background: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+/* Crossfader section */
+.crossfader-container {
+    text-align: center;
+    padding: 15px;
+    background: #222;
+    border-radius: 8px;
+}
+
+#crossfader {
+    width: 300px;
+    margin: 0 auto;
+}
+
+/* Serato-style labels */
+.deck-label {
+    font-size: 0.8em;
+    color: #666;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+/* Control groups */
+.control-group {
+    background: #2a2a2a;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.8em;
+    color: #999;
+    margin-bottom: 3px;
+}
+
+/* Error messages */
+.error {
+    background: #ff4444;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    font-size: 0.9em;
+}
