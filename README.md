@@ -28,8 +28,8 @@ A professional-grade DJ software built with Flask and Web Audio API, featuring a
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/dj-pro.git
-cd dj-pro
+git clone https://github.com/batrivieredev/project_test.git
+cd project_test
 ```
 
 2. Run the installation script:
