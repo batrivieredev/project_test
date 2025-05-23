@@ -60,3 +60,6 @@ Sur le mixer :
 les hight mid et low sont pas bien mis en page quand je suis en 2 decks je ne voit que la moitier, quand je suis en 4 decks je ne les voit pas du tout
 entre les boutons 4 deck et importer il y a 3 boutons qui servent à rien, remplace les pour que quand on clique dessus sa affiche l'administration, le convertisseru de musique et le dashboard
 et refait moi le readme
+ajouter à une playlist ne fonctionne pas
+le suivi de lecture est en haut de la page alors que je veux qu'il soit suivant chaque deck et qu'il soit sur les courbes
+
