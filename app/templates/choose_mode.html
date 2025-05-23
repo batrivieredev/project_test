@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Choisir un mode{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center vh-100">
+    <div class="card bg-dark border-secondary" style="width: 400px;">
+        <div class="card-header border-secondary">
+            <h4 class="card-title mb-0 text-center">
+                <span class="material-icons align-middle me-2">apps</span>
+                Choisir un mode
+            </h4>
+        </div>
+        <div class="card-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <div class="d-grid gap-3">
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">
+                    <span class="material-icons align-middle me-2">admin_panel_settings</span>
+                    Administration
+                </a>
+                {% endif %}
+
+                {% if current_user.can_access_mixer %}
+                <a href="{{ url_for('main.mixer') }}" class="btn btn-success btn-lg">
+                    <span class="material-icons align-middle me-2">playlist_play</span>
+                    DJ Mixer
+                </a>
+                {% endif %}
+
+                {% if not current_user.is_admin and not current_user.can_access_mixer %}
+                <div class="alert alert-warning">
+                    <span class="material-icons align-middle me-2">warning</span>
+                    Votre compte n'a pas encore d'accès. Un administrateur doit vous accorder les permissions nécessaires.
+                </div>
+                {% endif %}
+            </div>
+
+            <hr class="border-secondary my-4">
+
+            <a href="{{ url_for('main.converter') }}" class="btn btn-info btn-lg d-block mb-4">
+                <span class="material-icons align-middle me-2">music_note</span>
+                Convertisseur Audio
+            </a>
+
+            <div class="text-center">
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                    <span class="material-icons align-middle me-2">logout</span>
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-lg {
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.material-icons {
+    font-size: 24px;
+    vertical-align: text-bottom;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}

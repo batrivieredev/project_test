@@ -1,209 +1,129 @@
-# DJ Online Studio
+# DJ Pro - Digital DJ Software
 
-A Python-based web application that replicates Serato DJ Pro's functionality in the browser. Features real-time audio mixing, waveform visualization, and BPM detection.
+A professional-grade DJ software built with Flask and Web Audio API, featuring automatic BPM detection, playlist management, and multi-deck mixing capabilities.
 
 ## Features
 
-- Serato DJ Pro-like interface
-- Dual-deck mixing with real-time waveform display
-- Color-coded frequency visualization (bass, mids, highs)
-- Advanced BPM detection using multiple algorithms
-- Track analysis and metadata handling
-- Smooth crossfader with exponential curve
-- Volume and pitch control for each deck
-- Server-side audio processing with Librosa
-- Responsive design
+- Multi-deck mixing (2-4 decks)
+- Automatic BPM detection and beat sync
+- Real-time spectrum analysis and waveform display
+- Playlist management with folder scanning
+- Effects processing (Delay, Reverb, Filter, etc.)
+- Volume control and VU meters
+- Track library management
+- Drag and drop support
+
+## Requirements
+
+- Python 3.8 or higher
+- Virtual environment (recommended)
+- Web browser with Web Audio API support
+- System requirements for audio processing:
+  - librosa
+  - numpy
+  - soundfile
+  - mutagen
 
 ## Installation
 
-### Quick Start
-
-#### Windows
-```batch
-quickstart.bat
-python run.py
-```
-
-#### macOS/Linux
+1. Clone the repository:
 ```bash
-chmod +x quickstart.sh
-./quickstart.sh
-python run.py
+git clone https://github.com/yourusername/dj-pro.git
+cd dj-pro
 ```
 
-### Manual Installation
-
-1. Create and activate virtual environment:
+2. Run the installation script:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+chmod +x launch.sh
+./launch.sh
 ```
 
-2. Install dependencies:
+This will:
+- Create a virtual environment
+- Install dependencies
+- Initialize the database
+- Create an admin user
+- Scan for music in default locations
+
+## Usage
+
+1. Start the application:
 ```bash
-pip install -r requirements.txt
+./start.sh
 ```
 
-3. Initialize database:
-```bash
-python cli.py init-db
-```
+2. Login with default credentials:
+   - Username: admin
+   - Password: admin
 
-4. Run the application:
-```bash
-python run.py
-```
+3. Access the application at http://localhost:5000
 
-## Development Setup
+4. Add music:
+   - Your music will be automatically scanned from:
+     - ~/Music
+     - ~/Downloads
+     - ./uploads
+   - Or drag and drop files into the library panel
+
+5. Use the interface:
+   - Click tracks to load them into decks
+   - Use the play/pause buttons to control playback
+   - Adjust volume with vertical faders
+   - Monitor levels with VU meters
+   - Apply effects using the FX panel
+   - View waveforms and spectrum analysis in real-time
+
+## Commands
+
+- `./launch.sh` - First-time setup and installation
+- `./start.sh` - Normal startup with environment checks
+- `./restart.sh` - Restart application without clearing database
+- `./verify_components.sh` - Run system verification
+- `python test_system.py` - Run test suite
+
+## Development
 
 1. Install development dependencies:
 ```bash
 pip install -r requirements.txt
-pip install -r tests/requirements-test.txt
 ```
 
-2. Set up pre-commit hooks:
+2. Run tests:
 ```bash
-pre-commit install
+python test_system.py
 ```
 
-3. Run tests:
+3. Format code:
 ```bash
-pytest
+black .
+flake8
 ```
 
-4. Run with debug mode:
-```bash
-export FLASK_ENV=development  # On Windows: set FLASK_ENV=development
-python run.py
-```
+## Troubleshooting
 
-## Project Structure
+1. If music files aren't being detected:
+   - Check file permissions
+   - Verify supported formats (mp3, wav, aiff, ogg, m4a)
+   - Run `./verify_components.sh` to check system setup
 
-```
-dj_online_studio/
-├── static/              # Static assets
-│   ├── css/            # Stylesheets
-│   └── js/             # JavaScript modules
-├── templates/          # HTML templates
-├── routes/            # Flask route handlers
-├── models.py          # Database models
-├── audio_processor.py # Audio analysis
-└── config.py         # Application config
-```
+2. If BPM detection isn't working:
+   - Ensure librosa is properly installed
+   - Check if the audio file is corrupted
+   - Try re-encoding the file
 
-## Testing
-
-Run the test suite:
-```bash
-pytest
-```
-
-Generate coverage report:
-```bash
-pytest --cov=dj_online_studio --cov-report=html
-```
-
-View the coverage report in `htmlcov/index.html`
-
-## CLI Commands
-
-- Initialize database:
-  ```bash
-  python cli.py init-db
-  ```
-
-- Clean all data:
-  ```bash
-  python cli.py clean
-  ```
-
-- Reset database:
-  ```bash
-  python cli.py reset-db
-  ```
-
-- Setup application:
-  ```bash
-  python cli.py setup
-  ```
-
-## Production Deployment
-
-1. Set production environment variables:
-```bash
-export FLASK_ENV=production
-export SECRET_KEY=your-secret-key
-```
-
-2. Run using Gunicorn:
-```bash
-gunicorn wsgi:app
-```
-
-## Technical Details
-
-### Backend
-- Flask web framework
-- SQLAlchemy for database management
-- Librosa for audio analysis
-- FFmpeg for audio processing
-
-### Frontend
-- Web Audio API for real-time processing
-- Canvas API for waveform visualization
-- Modern JavaScript (ES6+) with modules
-- CSS Grid and Flexbox for responsive layout
+3. If the application won't start:
+   - Check port 5000 is available
+   - Verify database permissions
+   - Look for errors in the console output
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch:
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-3. Make your changes and commit:
-   ```bash
-   git commit -m 'Add some feature'
-   ```
-4. Push to the branch:
-   ```bash
-   git push origin feature/your-feature
-   ```
-5. Submit a pull request
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Troubleshooting
-
-### Common Issues
-
-1. Database initialization fails:
-   ```bash
-   python cli.py clean
-   python cli.py init-db
-   ```
-
-2. Audio processing errors:
-   - Ensure FFmpeg is installed
-   - Check file permissions
-   - Verify audio file format support
-
-3. Web Audio API issues:
-   - Use a modern browser
-   - Enable audio playback permissions
-
-### Getting Help
-
-- Open an issue for bugs
-- Check existing issues for solutions
-- Consult the documentation in /docs
-
-## Acknowledgments
-
-- Inspired by Serato DJ Pro
-- Uses Librosa for audio analysis
-- Web Audio API for real-time processing
-- FFmpeg for audio format support
+This project is licensed under the MIT License - see the LICENSE file for details.

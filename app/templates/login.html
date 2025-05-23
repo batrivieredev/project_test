@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center vh-100">
+    <div class="card bg-dark border-secondary" style="width: 400px;">
+        <div class="card-header border-secondary">
+            <h4 class="card-title mb-0 text-center">
+                <span class="material-icons align-middle me-2">dj</span>
+                DJ Pro
+            </h4>
+        </div>
+        <div class="card-body">
+            {# Messages flash #}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {# Formulaire de connexion #}
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nom d'utilisateur</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary">
+                            <span class="material-icons">person</span>
+                        </span>
+                        <input type="text" class="form-control bg-dark text-light border-secondary"
+                               id="username" name="username" required autofocus>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Mot de passe</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary">
+                            <span class="material-icons">lock</span>
+                        </span>
+                        <input type="password" class="form-control bg-dark text-light border-secondary"
+                               id="password" name="password" required>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-icons align-middle me-2">login</span>
+                        Connexion
+                    </button>
+                </div>
+            </form>
+
+            <hr class="border-secondary my-4">
+
+            {# Lien pour créer un compte #}
+            <div class="text-center">
+                <p class="mb-0">Pas encore de compte ?</p>
+                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    Créer un compte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal de création de compte #}
+<div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Créer un compte</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                    <div class="mb-3">
+                        <label for="reg_username" class="form-label">Nom d'utilisateur</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary"
+                               id="reg_username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_email" class="form-label">Email</label>
+                        <input type="email" class="form-control bg-dark text-light border-secondary"
+                               id="reg_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_password" class="form-label">Mot de passe</label>
+                        <input type="password" class="form-control bg-dark text-light border-secondary"
+                               id="reg_password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_confirm_password" class="form-label">Confirmer le mot de passe</label>
+                        <input type="password" class="form-control bg-dark text-light border-secondary"
+                               id="reg_confirm_password" name="confirm_password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" form="registerForm" class="btn btn-primary">Créer le compte</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control:focus {
+    background-color: #2a2a2a;
+    color: #fff;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.input-group-text {
+    color: #6c757d;
+}
+
+.material-icons {
+    font-size: 20px;
+    vertical-align: text-bottom;
+}
+
+.card {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.btn-link {
+    color: #0d6efd;
+    text-decoration: none;
+}
+
+.btn-link:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Administration{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        {# Sidebar de navigation #}
+        <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}"
+                           href="{{ url_for('admin.dashboard') }}">
+                            <span class="material-icons align-middle me-2">dashboard</span>
+                            Tableau de bord
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.users_list' %}active{% endif %}"
+                           href="{{ url_for('admin.users_list') }}">
+                            <span class="material-icons align-middle me-2">people</span>
+                            Utilisateurs
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        {# Contenu principal #}
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{% block page_title %}{% endblock %}</h1>
+            </div>
+
+            {# Messages flash #}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {# Contenu spécifique de la page #}
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<style>
+.sidebar {
+    min-height: calc(100vh - 48px);
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar .nav-link {
+    color: #6c757d;
+    padding: .5rem 1rem;
+}
+
+.sidebar .nav-link.active {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.sidebar .nav-link:hover {
+    color: #0a58ca;
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.material-icons {
+    font-size: 20px;
+    vertical-align: text-bottom;
+}
+</style>
+{% endblock %}
