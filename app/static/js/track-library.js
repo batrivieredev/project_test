@@ -317,9 +317,15 @@ class TrackLibrary {
         console.error('❌', message);
     }
     toggleLibrary() {
-        const wasHidden = this.libraryPanel.classList.contains('hidden');
         this.libraryPanel.classList.toggle('hidden');
-        this.libraryToggle.querySelector('.material-icons').textContent = wasHidden ? 'close' : 'menu';
+        const icon = this.libraryToggle.querySelector('.material-icons');
+        if (this.libraryPanel.classList.contains('hidden')) {
+            icon.textContent = 'library_music';
+            this.libraryToggle.setAttribute('title', 'Afficher la bibliothèque');
+        } else {
+            icon.textContent = 'close';
+            this.libraryToggle.setAttribute('title', 'Masquer la bibliothèque');
+        }
     }
 }
 

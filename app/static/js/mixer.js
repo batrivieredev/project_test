@@ -1,384 +1,198 @@
-// Theme handling
-let isDarkMode = true;
+document.addEventListener('DOMContentLoaded', function() {
+    // Audio Context
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-function toggleTheme() {
-    isDarkMode = !isDarkMode;
-    const root = document.documentElement;
+    // Deck initialization
+    class Deck {
+        constructor(id) {
+            this.id = id;
+            this.audio = new Audio();
+            this.isPlaying = false;
+            this.gainNode = audioContext.createGain();
+            this.gainNode.connect(audioContext.destination);
+            this.source = null;
 
-    if (isDarkMode) {
-        root.removeAttribute('data-theme');
-    } else {
-        root.setAttribute('data-theme', 'light');
+            // DOM elements
+            this.element = document.getElementById(`deck-${id}`);
+            if (!this.element) return;
+
+            this.setupControls();
+            this.setupAudio();
+        }
+
+        setupControls() {
+            const controls = this.element.querySelector('.controls');
+            const [playBtn, pauseBtn, cueBtn, loopBtn] = controls.querySelectorAll('button');
+            const volumeSlider = document.getElementById(`volume-${this.id}`);
+            const pitchSlider = document.getElementById(`pitch-${this.id}`);
+
+            playBtn.onclick = () => this.play();
+            pauseBtn.onclick = () => this.pause();
+            cueBtn.onclick = () => this.cue();
+            loopBtn.onclick = () => this.toggleLoop();
+
+            if (volumeSlider) {
+                volumeSlider.oninput = (e) => {
+                    if (this.gainNode) {
+                        this.gainNode.gain.value = e.target.value / 100;
+                    }
+                };
+            }
+
+            if (pitchSlider) {
+                pitchSlider.oninput = (e) => {
+                    const value = 1 + (parseFloat(e.target.value) / 100);
+                    this.audio.playbackRate = value;
+                };
+            }
+        }
+
+        setupAudio() {
+            this.audio.onended = () => {
+                this.isPlaying = false;
+                this.updateButtons();
+            };
+        }
+
+        async loadTrack(trackId) {
+            try {
+                const response = await fetch(`/api/tracks/${trackId}/file`);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+
+                this.audio.src = url;
+
+                // Reset audio nodes
+                if (this.source) {
+                    this.source.disconnect();
+                }
+                this.source = audioContext.createMediaElementSource(this.audio);
+                this.source.connect(this.gainNode);
+
+            } catch (error) {
+                console.error('Error loading track:', error);
+            }
+        }
+
+        updateButtons() {
+            const [playBtn, pauseBtn] = this.element.querySelectorAll('.controls button');
+            playBtn.disabled = this.isPlaying;
+            pauseBtn.disabled = !this.isPlaying;
+        }
+
+        async play() {
+            if (!this.audio.src) return;
+            try {
+                await audioContext.resume();
+                await this.audio.play();
+                this.isPlaying = true;
+                this.updateButtons();
+            } catch (error) {
+                console.error('Error playing:', error);
+            }
+        }
+
+        pause() {
+            this.audio.pause();
+            this.isPlaying = false;
+            this.updateButtons();
+        }
+
+        cue() {
+            this.audio.currentTime = 0;
+        }
+
+        toggleLoop() {
+            this.audio.loop = !this.audio.loop;
+            this.element.querySelector('.controls button:last-child').classList.toggle('active');
+        }
     }
 
-    const themeIcon = document.querySelector('#themeToggle .material-icons');
-    themeIcon.textContent = isDarkMode ? 'dark_mode' : 'light_mode';
-}
+    // Initialize decks
+    const decks = {
+        a: new Deck('a'),
+        b: new Deck('b')
+    };
 
-// Initialisation du mixer
-document.addEventListener('DOMContentLoaded', () => {
-    // Theme toggle initialization
-    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-    // Initialise la bibliothèque
-    const library = new TrackLibrary();
+    // Track loading
+    document.querySelectorAll('tr[data-track-id]').forEach(row => {
+        row.onclick = () => {
+            const trackId = row.dataset.trackId;
+            const activeDeck = document.querySelector('.library-controls button.active');
+            if (activeDeck) {
+                const deckId = activeDeck.dataset.deck.toLowerCase();
+                decks[deckId]?.loadTrack(trackId);
+            }
+        };
+    });
 
-    // Initialise les decks principaux et leurs effets
-    const deckA = new DeckController('A');
-    const deckB = new DeckController('B');
-    const effectsA = new EffectChain(deckA.audioEngine);
-    const effectsB = new EffectChain(deckB.audioEngine);
-
-    // Gestion du crossfader
-    const crossfader = document.getElementById('crossfader');
+    // Crossfader
+    const crossfader = document.querySelector('.crossfader');
     if (crossfader) {
-        crossfader.addEventListener('input', () => {
-            // Convert crossfader range [-1, 1] to [0, 1] for volume
-            const value = (parseFloat(crossfader.value) + 1) / 2;
+        crossfader.oninput = (e) => {
+            const value = parseInt(e.target.value);
+            const gainA = Math.cos((value + 100) * (Math.PI / 400));
+            const gainB = Math.cos((100 - value) * (Math.PI / 400));
 
-            // Apply smooth crossfade curve
-            const gainA = Math.cos(value * Math.PI / 2);
-            const gainB = Math.cos((1 - value) * Math.PI / 2);
+            if (decks.a?.gainNode) decks.a.gainNode.gain.value = gainA;
+            if (decks.b?.gainNode) decks.b.gainNode.gain.value = gainB;
+        };
+    }
 
-            deckA.audioEngine.setVolume(gainA);
-            deckB.audioEngine.setVolume(gainB);
+    // File upload
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+
+    if (uploadZone && fileInput) {
+        uploadZone.ondragover = (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        };
+
+        uploadZone.ondragleave = () => {
+            uploadZone.classList.remove('dragover');
+        };
+
+        uploadZone.ondrop = (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        };
+
+        uploadZone.onclick = () => fileInput.click();
+        fileInput.onchange = () => handleFiles(fileInput.files);
+    }
+
+    function handleFiles(files) {
+        Array.from(files).forEach(file => {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/tracks', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Upload successful:', data);
+                location.reload(); // Refresh to show new tracks
+            })
+            .catch(error => console.error('Upload error:', error));
         });
     }
 
-    // Gestion des volumes individuels
-    setupVolumeControl('A', deckA);
-    setupVolumeControl('B', deckB);
-
-    // Initialise les decks supplémentaires (désactivés par défaut)
-    let deckC = null;
-    let deckD = null;
-    let effectsC = null;
-    let effectsD = null;
-
-    // Layout switching
-    const layout2DecksBtn = document.getElementById('layout2Decks');
-    const layout4DecksBtn = document.getElementById('layout4Decks');
-    const decksContainer = document.querySelector('.decks-container');
-    const deckCElement = document.querySelector('.deck-c');
-    const deckDElement = document.querySelector('.deck-d');
-
-    if (layout2DecksBtn && layout4DecksBtn && decksContainer) {
-        // Set initial state (2-deck layout)
-        layout2DecksBtn.classList.add('btn-primary');
-        layout2DecksBtn.classList.remove('btn-outline-secondary');
-
-        layout2DecksBtn.addEventListener('click', () => {
-            // Switch to 2-deck layout
-            decksContainer.classList.remove('layout-4-decks');
-            layout2DecksBtn.classList.add('btn-primary');
-            layout2DecksBtn.classList.remove('btn-outline-secondary');
-            layout4DecksBtn.classList.remove('btn-primary');
-            layout4DecksBtn.classList.add('btn-outline-secondary');
-
-            // Hide and cleanup decks C and D
-            deckCElement.classList.add('d-none');
-            deckDElement.classList.add('d-none');
-            if (deckC) {
-                deckC.audioEngine.stop();
-                deckD.audioEngine.stop();
+    // BPM Analysis
+    window.analyzeBPM = function(trackId) {
+        fetch(`/api/tracks/${trackId}/analyze-bpm`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.bpm) {
+                console.log('BPM detected:', data.bpm);
+                location.reload(); // Refresh to show updated BPM
             }
-        });
-
-        layout4DecksBtn.addEventListener('click', () => {
-            // Switch to 4-deck layout
-            decksContainer.classList.add('layout-4-decks');
-            layout4DecksBtn.classList.add('btn-primary');
-            layout4DecksBtn.classList.remove('btn-outline-secondary');
-            layout2DecksBtn.classList.remove('btn-primary');
-            layout2DecksBtn.classList.add('btn-outline-secondary');
-
-            // Initialize and show decks C and D
-            deckCElement.classList.remove('d-none');
-            deckDElement.classList.remove('d-none');
-
-            if (!deckC) {
-                deckC = new DeckController('C');
-                deckD = new DeckController('D');
-                effectsC = new EffectChain(deckC.audioEngine);
-                effectsD = new EffectChain(deckD.audioEngine);
-
-                // Setup volume controls for new decks
-                setupVolumeControl('C', deckC);
-                setupVolumeControl('D', deckD);
-            }
-        });
-    }
-    // Setup EQ controls for each deck
-    setupEQControls('A', deckA);
-    setupEQControls('B', deckB);
-
-    // Handle track loading for all decks
-    document.addEventListener('loadTrack', (e) => {
-        const { track, deckId } = e.detail;
-
-        // Verify track object and ID exist
-        if (!track || !track.id) {
-            console.error('Invalid track data:', track);
-            return;
-        }
-
-        let targetDeck;
-        switch(deckId) {
-            case 'A':
-                targetDeck = deckA;
-                break;
-            case 'B':
-                targetDeck = deckB;
-                break;
-            case 'C':
-                if (deckC) targetDeck = deckC;
-                break;
-            case 'D':
-                if (deckD) targetDeck = deckD;
-                break;
-        }
-
-        if (targetDeck) {
-            targetDeck.loadTrack(track);
-        } else {
-            console.error('Invalid deck ID:', deckId);
-        }
-    });
-
-    // EQ controls setup when switching to 4 decks
-    layout4DecksBtn.addEventListener('click', () => {
-        if (!deckC) {
-            deckC = new DeckController('C');
-            deckD = new DeckController('D');
-            effectsC = new EffectChain(deckC.audioEngine);
-            effectsD = new EffectChain(deckD.audioEngine);
-
-            setupVolumeControl('C', deckC);
-            setupVolumeControl('D', deckD);
-            setupEQControls('C', deckC);
-            setupEQControls('D', deckD);
-        }
-    });
-
-    // Synchronisation des BPM entre tous les decks actifs
-    setupBPMSync(deckA, deckB);
-
-    // Raccourcis clavier
-    setupKeyboardShortcuts(deckA, deckB, deckC, deckD);
-});
-
-function setupVolumeControl(deckId, deck) {
-    const volumeControl = document.getElementById(`volume${deckId}`);
-    if (volumeControl) {
-        volumeControl.addEventListener('input', () => {
-            const value = parseFloat(volumeControl.value);
-            deck.audioEngine.setVolume(value);
-        });
-    }
-}
-
-function setupDeckSelection() {
-    const decks = document.querySelectorAll('.deck');
-    decks.forEach(deck => {
-        deck.addEventListener('click', () => {
-            decks.forEach(d => d.classList.remove('selected'));
-            deck.classList.add('selected');
-        });
-    });
-}
-
-function setupBPMSync(deckA, deckB) {
-    const syncButton = document.getElementById('syncDecks');
-    if (!syncButton) return;
-
-    syncButton.addEventListener('click', () => {
-        if (!deckA.currentTrack || !deckB.currentTrack) return;
-
-        // Récupère les BPM des deux morceaux
-        const bpmA = deckA.currentTrack.bpm;
-        const bpmB = deckB.currentTrack.bpm;
-        if (!bpmA || !bpmB) return;
-
-        // Calcule le ratio pour la synchronisation
-        const ratio = bpmA / bpmB;
-
-        // Ajuste la vitesse du deck B
-        deckB.audioEngine.source.playbackRate.value = ratio;
-
-        // Met à jour l'interface
-        const pitchControl = document.querySelector(`[data-pitch="B"]`);
-        if (pitchControl) {
-            pitchControl.value = (ratio - 1) * 100;
-        }
-    });
-}
-
-function setupKeyboardShortcuts(deckA, deckB, deckC, deckD) {
-    document.addEventListener('keydown', (e) => {
-        // Empêche les raccourcis si on est dans un champ de texte
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-        switch(e.code) {
-            // Deck A
-            case 'KeyQ':
-                deckA.togglePlay();
-                break;
-            case 'KeyW':
-                deckA.pressCue();
-                break;
-            case 'KeyE':
-                // Load to deck A
-                document.querySelector('#loadDeckA').click();
-                break;
-            case 'KeyR':
-                // Eject from deck A
-                document.querySelector('#ejectDeckA').click();
-                break;
-
-            // Deck B
-            case 'KeyP':
-                deckB.togglePlay();
-                break;
-            case 'KeyO':
-                deckB.pressCue();
-                break;
-            case 'KeyI':
-                // Load to deck B
-                document.querySelector('#loadDeckB').click();
-                break;
-            case 'KeyU':
-                // Eject from deck B
-                document.querySelector('#ejectDeckB').click();
-                break;
-
-            // Deck C
-            case 'KeyZ':
-                if (deckC) deckC.togglePlay();
-                break;
-            case 'KeyX':
-                if (deckC) deckC.pressCue();
-                break;
-            case 'KeyC':
-                if (deckC) document.querySelector('#loadDeckC').click();
-                break;
-            case 'KeyV':
-                if (deckC) document.querySelector('#ejectDeckC').click();
-                break;
-
-            // Deck D
-            case 'KeyM':
-                if (deckD) deckD.togglePlay();
-                break;
-            case 'KeyN':
-                if (deckD) deckD.pressCue();
-                break;
-            case 'KeyB':
-                if (deckD) document.querySelector('#loadDeckD').click();
-                break;
-            case 'KeyG':
-                if (deckD) document.querySelector('#ejectDeckD').click();
-                break;
-
-            // Global controls
-            case 'Space':
-                e.preventDefault(); // Empêche le défilement de la page
-                // Joue/Pause le deck sélectionné
-                const selectedDeck = document.querySelector('.deck.selected');
-                if (selectedDeck) {
-                    let deck;
-                    if (selectedDeck.classList.contains('deck-left')) deck = deckA;
-                    else if (selectedDeck.classList.contains('deck-right')) deck = deckB;
-                    else if (selectedDeck.classList.contains('deck-c')) deck = deckC;
-                    else if (selectedDeck.classList.contains('deck-d')) deck = deckD;
-
-                    if (deck) deck.togglePlay();
-                }
-                break;
-        }
-    });
-
-    document.addEventListener('keyup', (e) => {
-        // Empêche les raccourcis si on est dans un champ de texte
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-        switch(e.code) {
-            case 'KeyW':
-                deckA.releaseCue();
-                break;
-            case 'KeyO':
-                deckB.releaseCue();
-                break;
-            case 'KeyX':
-                if (deckC) deckC.releaseCue();
-                break;
-            case 'KeyN':
-                if (deckD) deckD.releaseCue();
-                break;
-        }
-    });
-}
-
-// Setup EQ and effects controls for a deck
-function setupEQControls(deckId, deck) {
-    // EQ Controls
-    ['low', 'mid', 'high'].forEach(band => {
-        const slider = document.querySelector(`input[data-eq="${deckId}"][data-band="${band}"]`);
-        if (slider) {
-            slider.addEventListener('input', (e) => {
-                const value = parseFloat(e.target.value);
-                if (deck.audioEngine.setEQ) {
-                    deck.audioEngine.setEQ(band, value);
-                }
-            });
-        }
-    });
-
-    // Filter control
-    const filterSlider = document.querySelector(`input[data-fx="${deckId}"][data-effect="filter"]`);
-    if (filterSlider) {
-        filterSlider.addEventListener('input', (e) => {
-            const value = parseFloat(e.target.value);
-            if (deck.audioEngine.setFilter) {
-                deck.audioEngine.setFilter(value);
-            }
-        });
-    }
-
-    // Effect controls
-    ['delay', 'reverb'].forEach(effect => {
-        const slider = document.querySelector(`input[data-fx="${deckId}"][data-effect="${effect}"]`);
-        if (slider) {
-            slider.addEventListener('input', (e) => {
-                const value = parseFloat(e.target.value) / 100; // Normalize to 0-1
-                if (deck.audioEngine.setEffectParam) {
-                    deck.audioEngine.setEffectParam(effect, value);
-                }
-            });
-        }
-    });
-}
-
-// Fonctions utilitaires pour l'interface
-function showTooltip(element, message) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'tooltip';
-    tooltip.textContent = message;
-
-    element.appendChild(tooltip);
-    setTimeout(() => tooltip.remove(), 2000);
-}
-
-function formatTime(seconds) {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-// Gestion des erreurs
-window.onerror = function(msg, url, lineNo, columnNo, error) {
-    console.error('Error: ' + msg + '\nURL: ' + url + '\nLine: ' + lineNo);
-    return false;
-};
-
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('Unhandled promise rejection:', event.reason);
+        })
+        .catch(error => console.error('BPM analysis error:', error));
+    };
 });

@@ -1,511 +1,165 @@
 {% extends "base.html" %}
 
-{% block title %}DJ Mixer{% endblock %}
+{% block head %}
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mixer.css') }}">
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid vh-100 d-flex flex-column bg-dark text-light p-0">
-    {# Barre de navigation #}
+    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-3">
-        <a class="navbar-brand" href="#">
-            <span class="material-icons align-middle me-2">playlist_play</span>
-            DJ Pro
-        </a>
-        <div class="ms-auto d-flex align-items-center">
-            {# Layout controls #}
-            <div class="btn-group me-3">
-                <button class="btn btn-outline-secondary btn-sm" id="layout2Decks">2 Decks</button>
-                <button class="btn btn-outline-secondary btn-sm" id="layout4Decks">4 Decks</button>
+        <div class="d-flex align-items-center">
+            <div class="btn-group me-3" role="group">
+                <button id="layout2Decks" class="btn btn-outline-primary active">2 Decks</button>
+                <button id="layout4Decks" class="btn btn-outline-primary">4 Decks</button>
             </div>
-            {# Visualisation controls #}
-
-            <div class="btn-group me-3">
-                <a href="{{ url_for('main.choose_mode') }}" class="btn btn-outline-primary btn-sm">
-                    <span class="material-icons">home</span>
-                </a>
-                {% if current_user.is_admin %}
-                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-info btn-sm">
-                    <span class="material-icons">admin_panel_settings</span>
-                </a>
-                {% endif %}
-                <button class="btn btn-outline-light btn-sm" id="themeToggle">
-                    <span class="material-icons">dark_mode</span>
-                </button>
-            </div>
-            <button class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <span class="material-icons align-middle me-1">upload</span>
-                Importer
+            <button class="btn btn-outline-secondary me-2" onclick="scanLibrary()">
+                <span class="material-icons">refresh</span>
             </button>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">
-                <span class="material-icons align-middle me-1">logout</span>
-                Déconnexion
+            <button class="btn btn-outline-secondary" id="togglePlaylists">
+                <span class="material-icons">queue_music</span>
+            </button>
+        </div>
+        <div class="ms-auto">
+            {% if current_user.can_access_converter %}
+            <a href="{{ url_for('main.converter') }}" class="btn btn-outline-secondary me-2">
+                <span class="material-icons">transform</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.choose_mode') }}" class="btn btn-outline-secondary me-2">
+                <span class="material-icons">home</span>
+            </a>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                <span class="material-icons">logout</span>
             </a>
         </div>
     </nav>
 
-    {# Zone des decks et mixer #}
-    <div class="decks-section">
-        <div class="decks-container">
-            {# Decks C et D (cachés par défaut) #}
-            <div class="deck deck-c d-none" title="Platine C">
-                <div class="deck-header d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Deck C</h5>
-                    <div class="deck-controls">
-                        <button class="btn btn-sm btn-outline-primary me-1" id="loadDeckC">
-                            <span class="material-icons">playlist_add</span>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" id="ejectDeckC">
-                            <span class="material-icons">eject</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="waveform mb-3" id="waveformC"></div>
-                <div class="deck-info p-2 bg-black rounded">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="track-info">
-                            <div class="track-title text-truncate">Aucun morceau</div>
-                            <small class="text-muted track-artist">-</small>
-                        </div>
-                        <div class="track-stats text-end">
-                            <div class="bpm">--- BPM</div>
-                            <small class="text-muted time">--:--</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="deck-controls">
-                    <div class="transport-controls">
-                        <button class="btn btn-lg btn-primary rounded-circle" id="playC">
-                            <span class="material-icons">play_arrow</span>
-                        </button>
-                        <button class="btn btn-lg btn-outline-secondary rounded-circle" id="cueC">
-                            <span class="material-icons">adjust</span>
-                        </button>
-                    </div>
-                    <div class="volume-section">
-                        <div class="volume-meter">
-                            <div class="volume-leds" id="volumeMeterC"></div>
-                        </div>
-                        <div class="volume-slider">
-                            <input type="range" id="volumeC" min="0" max="100" value="100">
-                        </div>
-                    </div>
-                    <div class="tempo-section">
-                        <div class="tempo-display">
-                            <span id="speedValueC">100%</span>
-                        </div>
-                        <input type="range" class="tempo-slider" id="speedC" min="50" max="150" value="100">
-                    </div>
-                    <div class="controls-section">
-                        <div class="eq-section">
-                            <span class="control-label">FILTER</span>
-                            <input type="range" class="eq-slider" data-fx="C" data-effect="filter" data-param="frequency" min="0" max="100" value="50" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">LOW</span>
-                            <input type="range" class="eq-slider" data-eq="C" data-band="low" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">MID</span>
-                            <input type="range" class="eq-slider" data-eq="C" data-band="mid" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">HIGH</span>
-                            <input type="range" class="eq-slider" data-eq="C" data-band="high" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="effect-section">
-                            <span class="control-label">DELAY</span>
-                            <input type="range" class="effect-slider" data-fx="C" data-effect="delay" data-param="time" min="0" max="100" value="0" orient="vertical">
-                        </div>
-                        <div class="effect-section">
-                            <span class="control-label">REVERB</span>
-                            <input type="range" class="effect-slider" data-fx="C" data-effect="reverb" data-param="mix" min="0" max="100" value="0" orient="vertical">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="deck deck-d d-none" title="Platine D">
-                <div class="deck-header d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Deck D</h5>
-                    <div class="deck-controls">
-                        <button class="btn btn-sm btn-outline-primary me-1" id="loadDeckD">
-                            <span class="material-icons">playlist_add</span>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" id="ejectDeckD">
-                            <span class="material-icons">eject</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="waveform mb-3" id="waveformD"></div>
-                <div class="deck-info p-2 bg-black rounded">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="track-info">
-                            <div class="track-title text-truncate">Aucun morceau</div>
-                            <small class="text-muted track-artist">-</small>
-                        </div>
-                        <div class="track-stats text-end">
-                            <div class="bpm">--- BPM</div>
-                            <small class="text-muted time">--:--</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="deck-controls">
-                    <div class="transport-controls">
-                        <button class="btn btn-lg btn-primary rounded-circle" id="playD">
-                            <span class="material-icons">play_arrow</span>
-                        </button>
-                        <button class="btn btn-lg btn-outline-secondary rounded-circle" id="cueD">
-                            <span class="material-icons">adjust</span>
-                        </button>
-                    </div>
-                    <div class="volume-section">
-                        <div class="volume-meter">
-                            <div class="volume-leds" id="volumeMeterD"></div>
-                        </div>
-                        <div class="volume-slider">
-                            <input type="range" id="volumeD" min="0" max="100" value="100">
-                        </div>
-                    </div>
-                    <div class="tempo-section">
-                        <div class="tempo-display">
-                            <span id="speedValueD">100%</span>
-                        </div>
-                        <input type="range" class="tempo-slider" id="speedD" min="50" max="150" value="100">
-                    </div>
-                    <div class="controls-section">
-                        <div class="eq-section">
-                            <span class="control-label">FILTER</span>
-                            <input type="range" class="eq-slider" data-fx="D" data-effect="filter" data-param="frequency" min="0" max="100" value="50" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">LOW</span>
-                            <input type="range" class="eq-slider" data-eq="D" data-band="low" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">MID</span>
-                            <input type="range" class="eq-slider" data-eq="D" data-band="mid" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">HIGH</span>
-                            <input type="range" class="eq-slider" data-eq="D" data-band="high" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="effect-section">
-                            <span class="control-label">DELAY</span>
-                            <input type="range" class="effect-slider" data-fx="D" data-effect="delay" data-param="time" min="0" max="100" value="0" orient="vertical">
-                        </div>
-                        <div class="effect-section">
-                            <span class="control-label">REVERB</span>
-                            <input type="range" class="effect-slider" data-fx="D" data-effect="reverb" data-param="mix" min="0" max="100" value="0" orient="vertical">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {# Deck Gauche #}
-            <div class="deck deck-left" title="Platine gauche">
-                <div class="deck-header d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Deck A</h5>
-                        <div class="deck-controls">
-                            <button class="btn btn-sm btn-outline-primary me-1" id="loadDeckA">
-                                <span class="material-icons">playlist_add</span>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" id="ejectDeckA">
-                                <span class="material-icons">eject</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="waveform mb-3" id="waveformA"></div>
-                    <div class="deck-info p-2 bg-black rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="track-info">
-                                <div class="track-title text-truncate">Aucun morceau</div>
-                                <small class="text-muted track-artist">-</small>
+    <!-- Main Content -->
+    <div class="flex-grow-1 d-flex flex-column">
+        <!-- Decks Section -->
+        <div class="container-fluid p-3">
+            <div class="row g-3">
+                <!-- Deck A -->
+                <div class="col-md-6">
+                    <div class="card bg-dark border-primary" id="deck-a">
+                        <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Deck A</h5>
+                            <div class="text-end">
+                                <div class="track-name text-truncate">No Track</div>
+                                <small class="text-muted bpm-display">--- BPM</small>
                             </div>
-                            <div class="track-stats text-end">
-                                <div class="bpm">--- BPM</div>
-                                <small class="text-muted time">--:--</small>
+                        </div>
+                        <div class="card-body">
+                            <div class="controls btn-group w-100 mb-3">
+                                <button class="btn btn-outline-primary"><span class="material-icons">play_arrow</span></button>
+                                <button class="btn btn-outline-primary"><span class="material-icons">pause</span></button>
+                                <button class="btn btn-outline-primary"><span class="material-icons">adjust</span></button>
+                                <button class="btn btn-outline-primary"><span class="material-icons">loop</span></button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label">Volume</label>
+                                    <input type="range" class="form-range" id="volume-a" min="0" max="100" value="100">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Pitch</label>
+                                    <input type="range" class="form-range" id="pitch-a" min="-8" max="8" value="0">
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="deck-controls">
-                        {# Transport Controls #}
-                        <div class="transport-controls">
-                            <button class="btn btn-lg btn-primary rounded-circle" id="playA" title="Lecture/Pause du morceau">
-                                <span class="material-icons">play_arrow</span>
-                            </button>
-                            <button class="btn btn-lg btn-outline-secondary rounded-circle" id="cueA" title="Définir/Rappeler le point de repère">
-                                <span class="material-icons">adjust</span>
-                            </button>
-                        </div>
+                </div>
 
-                        {# Volume and VU Meter #}
-                        <div class="volume-section" title="Section de contrôle du volume">
-                            <div class="volume-meter" title="Indicateur de niveau sonore">
-                                <div class="volume-leds" id="volumeMeterA"></div>
-                            </div>
-                            <div class="volume-slider">
-                                <input type="range" id="volumeA" min="0" max="100" value="100" title="Contrôle du volume">
-                            </div>
-                        </div>
-
-                        {# Tempo Controls #}
-                        <div class="tempo-section" title="Section de contrôle de la vitesse">
-                            <div class="tempo-display">
-                                <span id="speedValueA">100%</span>
-                            </div>
-                            <input type="range" class="tempo-slider" id="speedA" min="50" max="150" value="100" title="Contrôle de la vitesse de lecture">
-                        </div>
-
-                        {# Effects & EQ Controls #}
-                        <div class="controls-section">
-                            <div class="eq-section">
-                                <span class="control-label">FILTER</span>
-                                <input type="range" class="eq-slider" data-fx="A" data-effect="filter" data-param="frequency" min="0" max="100" value="50" orient="vertical">
-                            </div>
-                            <div class="eq-section">
-                                <span class="control-label">LOW</span>
-                                <input type="range" class="eq-slider" data-eq="A" data-band="low" min="-12" max="12" value="0" orient="vertical">
-                            </div>
-                            <div class="eq-section">
-                                <span class="control-label">MID</span>
-                                <input type="range" class="eq-slider" data-eq="A" data-band="mid" min="-12" max="12" value="0" orient="vertical">
-                            </div>
-                            <div class="eq-section">
-                                <span class="control-label">HIGH</span>
-                                <input type="range" class="eq-slider" data-eq="A" data-band="high" min="-12" max="12" value="0" orient="vertical">
-                            </div>
-                            <div class="effect-section">
-                                <span class="control-label">DELAY</span>
-                                <input type="range" class="effect-slider" data-fx="A" data-effect="delay" data-param="time" min="0" max="100" value="0" orient="vertical">
-                            </div>
-                            <div class="effect-section">
-                                <span class="control-label">REVERB</span>
-                                <input type="range" class="effect-slider" data-fx="A" data-effect="reverb" data-param="mix" min="0" max="100" value="0" orient="vertical">
+                <!-- Deck B -->
+                <div class="col-md-6">
+                    <div class="card bg-dark border-danger" id="deck-b">
+                        <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Deck B</h5>
+                            <div class="text-end">
+                                <div class="track-name text-truncate">No Track</div>
+                                <small class="text-muted bpm-display">--- BPM</small>
                             </div>
                         </div>
-                    </div>
-            </div>
-
-            {# Mixer central #}
-            <div class="mixer-section" title="Section de mixage">
-                <div class="mixer-controls">
-                    <div class="crossfader-container" title="Crossfader - Balance entre les platines">
-                        <div class="crossfader-label-left">A</div>
-                        <input type="range" id="crossfader" min="-1" max="1" value="0" step="0.01" class="custom-range">
-                        <div class="crossfader-label-right">B</div>
-                    </div>
-                    <div class="eq-controls">
-                        <div class="eq-section">
-                            <label>HIGH</label>
-                            <input type="range" id="eqHighA" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                            <input type="range" id="eqHighB" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <label>MID</label>
-                            <input type="range" id="eqMidA" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                            <input type="range" id="eqMidB" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <label>LOW</label>
-                            <input type="range" id="eqLowA" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                            <input type="range" id="eqLowB" class="eq-slider" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {# Deck Droit #}
-            <div class="deck deck-right" title="Platine droite">
-                <div class="deck-header d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="mb-0">Deck B</h5>
-                    <div class="deck-controls">
-                        <button class="btn btn-sm btn-outline-primary me-1" id="loadDeckB" title="Charger un morceau">
-                            <span class="material-icons">playlist_add</span>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" id="ejectDeckB" title="Éjecter le morceau">
-                            <span class="material-icons">eject</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="waveform mb-3" id="waveformB"></div>
-                <div class="deck-info p-2 bg-black rounded">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="track-info">
-                            <div class="track-title text-truncate">Aucun morceau</div>
-                            <small class="text-muted track-artist">-</small>
-                        </div>
-                        <div class="track-stats text-end">
-                            <div class="bpm">--- BPM</div>
-                            <small class="text-muted time">--:--</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="deck-controls">
-                    {# Transport Controls #}
-                    <div class="transport-controls">
-                        <button class="btn btn-lg btn-primary rounded-circle" id="playB" title="Lecture/Pause du morceau">
-                            <span class="material-icons">play_arrow</span>
-                        </button>
-                        <button class="btn btn-lg btn-outline-secondary rounded-circle" id="cueB" title="Définir/Rappeler le point de repère">
-                            <span class="material-icons">adjust</span>
-                        </button>
-                    </div>
-
-                    {# Volume and VU Meter #}
-                    <div class="volume-section" title="Section de contrôle du volume">
-                        <div class="volume-meter" title="Indicateur de niveau sonore">
-                            <div class="volume-leds" id="volumeMeterB"></div>
-                        </div>
-                        <div class="volume-slider">
-                            <input type="range" id="volumeB" min="0" max="100" value="100" title="Contrôle du volume">
-                        </div>
-                    </div>
-
-                    {# Tempo Controls #}
-                    <div class="tempo-section" title="Section de contrôle de la vitesse">
-                        <div class="tempo-display">
-                            <span id="speedValueB">100%</span>
-                        </div>
-                        <input type="range" class="tempo-slider" id="speedB" min="50" max="150" value="100" title="Contrôle de la vitesse de lecture">
-                    </div>
-
-                    {# Effects & EQ Controls #}
-                    <div class="controls-section">
-                        <div class="eq-section">
-                            <span class="control-label">FILTER</span>
-                            <input type="range" class="eq-slider" data-fx="B" data-effect="filter" data-param="frequency" min="0" max="100" value="50" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">LOW</span>
-                            <input type="range" class="eq-slider" data-eq="B" data-band="low" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">MID</span>
-                            <input type="range" class="eq-slider" data-eq="B" data-band="mid" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="eq-section">
-                            <span class="control-label">HIGH</span>
-                            <input type="range" class="eq-slider" data-eq="B" data-band="high" min="-12" max="12" value="0" orient="vertical">
-                        </div>
-                        <div class="effect-section">
-                            <span class="control-label">DELAY</span>
-                            <input type="range" class="effect-slider" data-fx="B" data-effect="delay" data-param="time" min="0" max="100" value="0" orient="vertical">
-                        </div>
-                        <div class="effect-section">
-                            <span class="control-label">REVERB</span>
-                            <input type="range" class="effect-slider" data-fx="B" data-effect="reverb" data-param="mix" min="0" max="100" value="0" orient="vertical">
+                        <div class="card-body">
+                            <div class="controls btn-group w-100 mb-3">
+                                <button class="btn btn-outline-danger"><span class="material-icons">play_arrow</span></button>
+                                <button class="btn btn-outline-danger"><span class="material-icons">pause</span></button>
+                                <button class="btn btn-outline-danger"><span class="material-icons">adjust</span></button>
+                                <button class="btn btn-outline-danger"><span class="material-icons">loop</span></button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label">Volume</label>
+                                    <input type="range" class="form-range" id="volume-b" min="0" max="100" value="100">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Pitch</label>
+                                    <input type="range" class="form-range" id="pitch-b" min="-8" max="8" value="0">
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    {# Bibliothèque de musique #}
-    <div class="library-panel" title="Bibliothèque musicale">
-        <button class="library-toggle" title="Afficher/Masquer la bibliothèque">
-            <span class="material-icons">menu</span>
-        </button>
-
-        <div class="library-header">
-            <div class="search-bar">
-                <input type="text" class="form-control" placeholder="Rechercher..." id="searchTracks" title="Rechercher des morceaux">
-                <button class="btn btn-outline-secondary" id="refreshLibrary" title="Actualiser la bibliothèque">
-                    <span class="material-icons">refresh</span>
-                </button>
+        <!-- Mixer Section -->
+        <div class="bg-dark border-top border-bottom border-secondary p-3">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <input type="range" class="form-range crossfader" min="-100" max="100" value="0">
+                </div>
             </div>
         </div>
 
-        <div class="library-content">
-            <div class="tab-content" id="playlistsTab">
-                <div class="playlists-header">
-                    <h6>Playlists</h6>
-                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createPlaylistModal" title="Créer une playlist">
-                        <span class="material-icons">add</span>
-                    </button>
-                </div>
-                <div class="playlists-list" id="playlistsList">
-                    {# Liste des playlists chargée dynamiquement #}
-                </div>
-            </div>
-
-            <div class="tab-content hidden" id="tracksTab">
-                <div class="tracks-header">
-                    <button class="btn btn-sm btn-outline-secondary" id="analyzeTracks" title="Analyser les BPM">
-                        <span class="material-icons">speed</span>
-                        Analyser BPM
-                    </button>
-                </div>
-                <div class="tracks-list" id="tracksList">
-                    {# Liste des morceaux chargée dynamiquement #}
+        <!-- Library Section -->
+        <div class="flex-grow-1 bg-dark">
+            <div class="container-fluid p-3">
+                <div class="card bg-dark border-secondary">
+                    <div class="card-header bg-dark">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <div class="btn-group library-controls">
+                                    <button class="btn btn-outline-primary active" data-deck="A">Deck A</button>
+                                    <button class="btn btn-outline-danger" data-deck="B">Deck B</button>
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <input type="text" class="form-control form-control-sm" placeholder="Search tracks..." id="searchInput">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="upload-zone p-4 text-center" id="uploadZone">
+                            <span class="material-icons display-4 text-muted">cloud_upload</span>
+                            <p class="text-muted mb-0">Drop audio files here or click to upload</p>
+                            <input type="file" id="fileInput" multiple accept=".mp3,.wav,.ogg,.m4a" style="display: none;">
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Artist</th>
+                                        <th>BPM</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tracksList">
+                                    <!-- Tracks will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-{# Modal d'upload de fichiers #}
-<div class="modal fade" id="uploadModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title">Importer des morceaux</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="uploadForm">
-                    <div class="mb-3">
-                        <label for="musicFiles" class="form-label">Sélectionner des fichiers</label>
-                        <input type="file" class="form-control bg-dark text-light border-secondary"
-                               id="musicFiles" multiple accept=".mp3,.wav,.ogg,.m4a">
-                        <small class="text-muted">Formats supportés: MP3, WAV, OGG, M4A</small>
-                    </div>
-                    <div class="progress mb-3 d-none" id="uploadProgress">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated"
-                             role="progressbar" style="width: 0%"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="startUpload">Importer</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-{# Modal de création de playlist #}
-<div class="modal fade" id="createPlaylistModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content bg-dark border-secondary">
-            <div class="modal-header border-secondary">
-                <h5 class="modal-title">Nouvelle Playlist</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="playlistForm">
-                    <div class="mb-3">
-                        <label for="playlistName" class="form-label">Nom de la playlist</label>
-                        <input type="text" class="form-control bg-dark text-light border-secondary"
-                               id="playlistName" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="playlistDescription" class="form-label">Description</label>
-                        <textarea class="form-control bg-dark text-light border-secondary"
-                                id="playlistDescription" rows="3"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer border-secondary">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="createPlaylist">Créer</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-{# Chargement des scripts #}
-<script src="{{ url_for('static', filename='js/audio-engine.js') }}"></script>
-<script src="{{ url_for('static', filename='js/deck-controller.js') }}"></script>
-<script src="{{ url_for('static', filename='js/effect-chain.js') }}"></script>
-<script src="{{ url_for('static', filename='js/track-library.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ url_for('static', filename='js/mixer.js') }}"></script>
 {% endblock %}

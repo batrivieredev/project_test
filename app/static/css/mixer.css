@@ -1,326 +1,91 @@
-:root {
-    /* Layout */
-    --header-height: 56px;
-    --library-height: 400px;
-    --deck-padding: 1rem;
-
-    /* Dark Theme (Default) */
-    --bg-primary: #000000;
-    --bg-secondary: #121212;
-    --text-primary: #00ff00;
-    --text-secondary: rgba(0, 255, 0, 0.7);
-    --accent-color: #00ff00;
-    --border-color: rgba(0, 255, 0, 0.3);
-    --glow-effect: 0 0 20px rgba(0, 255, 0, 0.2);
-}
-
-/* Light Theme */
-:root[data-theme="light"] {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f0f0f0;
-    --text-primary: #000000;
-    --text-secondary: #333333;
-    --accent-color: #00cc00;
-    --border-color: rgba(0, 204, 0, 0.3);
-    --glow-effect: 0 0 20px rgba(0, 204, 0, 0.1);
-}
-
-/* Base Layout */
-.container-fluid {
-    padding: 0;
-    position: relative;
-    z-index: 2;
-}
-
-/* Base Layout */
-body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Main Layout */
-.decks-section {
-    min-height: calc(100vh - var(--header-height));
-    padding: var(--deck-padding);
-    width: 100%;
-}
-
-.decks-container {
-    display: grid;
-    gap: var(--deck-padding);
-    grid-template-columns: 1fr auto 1fr;
-    height: 100%;
-}
-
-/* Deck Styling */
-.deck {
-    background: var(--panel-bg);
-    border: 2px solid var(--accent-color);
-    border-radius: 8px;
-    padding: var(--deck-padding);
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
-}
-
-:root[data-theme="light"] .deck {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.deck-info {
-    background: var(--bg-secondary);
-    border: 1px solid var(--accent-color);
-    color: var(--text-primary);
-    border-radius: 4px;
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-}
-
-/* 4 Decks Layout */
-.decks-container.layout-4-decks {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-rows: auto auto auto;
-    gap: calc(var(--deck-padding) / 2);
-}
-
-.layout-4-decks .deck {
-    min-height: 350px;
-}
-
-.layout-4-decks .mixer-section {
-    grid-column: 1 / -1;
-    grid-row: 3;
-    background: var(--panel-bg);
-    border: 1px solid var(--accent-color);
-    border-radius: 8px;
-    padding: var(--deck-padding);
-    height: 150px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.layout-4-decks .deck-c,
-.layout-4-decks .deck-d {
-    display: flex;
-}
-
-.layout-4-decks .controls-section {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-    padding: 0.5rem;
-}
-
-/* Hide C and D decks in 2-deck layout */
-.deck-c,
-.deck-d {
-    display: none;
-}
-
-
-/* Library Panel */
-.library-panel {
-    position: absolute;
-    top: var(--header-height);
-    right: 0;
-    width: 300px;
-    height: calc(100vh - var(--header-height));
-    background: var(--bg-secondary);
-    border-left: 1px solid var(--border-color);
-    z-index: 100;
-    display: none;
-}
-
-.library-panel:not(.hidden) {
-    display: block;
-}
-
-.library-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--accent-color);
-    background: var(--bg-primary);
-}
-
-.tab-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-}
-
-.playlists-header,
-.tracks-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.library-toggle {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 30px;
-    height: 30px;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    color: var(--text-primary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.playlist-item {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.playlist-item:hover {
-    background: var(--bg-primary);
-    border-color: var(--accent-color);
-}
-
-.tracks-list table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.tracks-list th,
-.tracks-list td {
-    padding: 0.5rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.tracks-list tr:hover {
-    background: var(--bg-primary);
-}
-
-.library-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: var(--deck-padding);
-    overflow-y: auto;
-}
-
-.library-header {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.search-bar {
-    flex: 1;
-    display: flex;
-    gap: 0.5rem;
-}
-
-.search-bar input {
-    flex: 1;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 0.5rem;
-    border-radius: 4px;
-}
-
-.search-bar button {
-    background: transparent;
-    border: 1px solid var(--accent-color);
-    color: var(--accent-color);
-    padding: 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.search-bar button:hover {
-    background: var(--accent-color);
-    color: var(--bg-primary);
-}
-
-
-/* Controls Styling */
-.controls-section {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: var(--control-spacing);
-    background: var(--panel-bg);
-    border: 1px solid var(--accent-color);
-    border-radius: 4px;
-    padding: var(--deck-padding);
-    margin-top: 1rem;
-}
-
-/* Input Styling */
-input[type="range"] {
-    -webkit-appearance: none;
-    background: var(--bg-secondary);
-    border: 1px solid var(--accent-color);
-    border-radius: 4px;
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+    width: 8px;
     height: 8px;
 }
 
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
-    background: var(--accent-color);
-    border-radius: 50%;
-    cursor: pointer;
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
 }
 
-:root[data-theme="light"] input[type="range"] {
-    background: var(--bg-secondary);
-    border-color: var(--accent-color);
+::-webkit-scrollbar-thumb {
+    background: #666;
+    border-radius: 4px;
 }
 
-:root[data-theme="light"] input[type="range"]::-webkit-slider-thumb {
-    background: var(--accent-color);
+::-webkit-scrollbar-thumb:hover {
+    background: #888;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-    :root {
-        --library-height: 250px;
-    }
-
-    .decks-container {
-        grid-template-columns: 1fr;
-        gap: var(--deck-padding);
-    }
-
-    .layout-4-decks {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: repeat(3, auto);
-    }
-
-    .layout-4-decks .mixer-section {
-        height: auto;
-        padding: calc(var(--deck-padding) / 2);
-    }
-
-    .layout-4-decks .controls-section {
-        grid-template-columns: repeat(3, 1fr);
-    }
+/* Upload zone styles */
+.upload-zone {
+    border: 2px dashed #666;
+    border-radius: 4px;
+    transition: all 0.3s ease;
 }
 
-@media (max-width: 768px) {
-    .library-panel {
-        width: 100%;
-        height: 300px;
-        border-left: none;
-        border-top: 1px solid var(--border-color);
-    }
+.upload-zone:hover {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+.upload-zone.dragover {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.2);
+}
+
+/* Deck controls customization */
+#deck-a .btn-outline-primary:hover {
+    background-color: rgba(13, 110, 253, 0.2);
+}
+
+#deck-b .btn-outline-danger:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+}
+
+/* Range input customization */
+.form-range::-webkit-slider-thumb {
+    transition: transform 0.1s ease;
+}
+
+.form-range::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+/* Table customization */
+.table-dark {
+    --bs-table-bg: transparent;
+}
+
+.table-dark tbody tr:hover {
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* Track info truncation */
+.track-name {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Material icons alignment */
+.material-icons {
+    vertical-align: middle;
+    font-size: 20px;
+}
+
+/* Button spacing fix */
+.btn .material-icons {
+    margin: -4px 0;
+}
+
+/* Crossfader styling */
+.crossfader {
+    height: 8px;
+}
+
+.crossfader::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
 }
