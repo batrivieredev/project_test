@@ -82,13 +82,17 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @requires_app_context
-def scan_music_folders():
+def scan_music_folders(user=None):
     """Scanne les dossiers de musique configurés"""
     app = current_app._get_current_object()
     print("\n🎵 Starting music library scan...")
 
+    if not user:
+        print("❌ No user provided for scan")
+        return
+
     # Ne scanne que le dossier d'upload de l'utilisateur
-    upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(current_user.id))
+    upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(user.id))
     if not os.path.exists(upload_dir):
         os.makedirs(upload_dir)
         print(f"📂 Created upload directory: {upload_dir}")
@@ -96,7 +100,7 @@ def scan_music_folders():
 
     try:
         print(f"\n📁 Scanning uploads directory: {upload_dir}")
-        scan_folder(upload_dir, user_id=current_user.id)
+        scan_folder(upload_dir, user_id=user.id)
         db.session.commit()
         print("✅ Upload directory scan completed!")
     except Exception as e:
@@ -680,15 +684,19 @@ def get_playlist_tracks(playlist_id):
 @mixer_access_required
 def get_tracks():
     """Retourne tous les morceaux de l'utilisateur"""
-    tracks = Track.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{
-        'id': t.id,
-        'title': t.title,
-        'artist': t.artist,
-        'bpm': t.bpm,
-        'key': t.key,
-        'file_path': t.file_path
-    } for t in tracks])
+    try:
+        tracks = Track.query.filter_by(user_id=current_user.id).all()
+        return jsonify([{
+            'id': t.id,
+            'title': t.title,
+            'artist': t.artist,
+            'bpm': t.bpm,
+            'key': t.key,
+            'file_path': t.file_path
+        } for t in tracks])
+    except Exception as e:
+        print(f"Error fetching tracks: {str(e)}")
+        return jsonify([])  # Return empty list instead of error to avoid breaking UI
 
 @api.route('/tracks/<int:track_id>')
 @login_required
@@ -817,7 +825,17 @@ def analyze_track_bpm(track_id):
 def scan_music():
     """Lance le scan de la bibliothèque musicale"""
     print("\n🔄 Lancement du scan de la bibliothèque...")
-    threading.Thread(target=scan_music_folders).start()
+    user_id = current_user.id
+
+    def scan_with_user():
+        with current_app.app_context():
+            # Requery user to avoid DetachedInstanceError
+            user = User.query.get(user_id)
+            if user:
+                # Pass user object to avoid current_user issues in thread
+                scan_music_folders(user=user)
+
+    threading.Thread(target=scan_with_user).start()
     return jsonify({'message': 'Scan démarré'})
 
 @api.route('/tracks', methods=['POST'])

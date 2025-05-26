@@ -75,9 +75,29 @@
     font-size: 20px;
 }
 
-/* Button spacing fix */
+/* Button icons */
 .btn .material-icons {
     margin: -4px 0;
+    transition: transform 0.2s ease;
+}
+
+/* Loading animation */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+/* BPM analysis button states */
+button:disabled .material-icons {
+    opacity: 0.5;
+}
+
+button .material-icons.error {
+    color: var(--bs-danger);
 }
 
 /* Crossfader styling */
