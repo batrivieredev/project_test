@@ -29,3 +29,5 @@ pytest==7.4.0
 pytest-cov==4.1.0
 flake8==6.1.0
 black==23.7.0
+ffmpeg-python==0.2.0
+pytube==15.0.0

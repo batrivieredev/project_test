@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, send_file, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, send_file, current_app, make_response
+from datetime import timedelta
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from .models import db, User, Track, Playlist, PlaylistTrack
@@ -45,6 +46,16 @@ def mixer_access_required(f):
         if not current_user.is_authenticated or not current_user.can_access_mixer:
             flash("Vous n'avez pas accès au mixer", "error")
             return redirect(url_for('auth.login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def converter_access_required(f):
+    """Vérifie que l'utilisateur a accès au convertisseur"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.can_access_converter:
+            flash("Vous n'avez pas accès au convertisseur", "error")
+            return redirect(url_for('main.choose_mode'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -299,47 +310,112 @@ def mixer():
 
 @main.route('/converter')
 @login_required
+@converter_access_required
 def converter():
     """Page du convertisseur audio"""
     return render_template('converter.html')
 
-@api.route('/convert', methods=['POST'])
+@api.route('/convert', methods=['POST', 'OPTIONS'])
 @login_required
+@converter_access_required
 def convert_audio():
-    """Convertit un fichier audio en MP3"""
-    if 'file' not in request.files:
-        return 'Aucun fichier sélectionné', 400
-
-    file = request.files['file']
+    """Convertit un fichier audio au format demandé"""
+    if request.method == 'OPTIONS':
+        response = make_response()
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
+    youtube_url = request.form.get('youtube_url')
+    output_format = request.form.get('format', 'mp3')
     quality = request.form.get('quality', '320')
 
-    if not file or file.filename == '':
-        return 'Nom de fichier invalide', 400
-
-    # Créer un nom de fichier unique
     temp_dir = Path(current_app.config['UPLOAD_FOLDER']) / 'temp'
     temp_dir.mkdir(exist_ok=True)
 
-    input_path = temp_dir / f"{uuid.uuid4()}{Path(file.filename).suffix}"
-    output_path = temp_dir / f"{uuid.uuid4()}.mp3"
-
     try:
-        # Sauvegarder le fichier d'entrée
-        file.save(input_path)
+        input_path = None
+        output_path = None
+        if youtube_url:
+            try:
+                # Configurer pytube avec un timeout plus long
+                from pytube import YouTube
+                import socket
+                socket.setdefaulttimeout(15)  # 15 secondes de timeout
 
-        # Convertir en MP3
-        stream = ffmpeg.input(str(input_path))
-        stream = ffmpeg.output(stream, str(output_path),
-                             acodec='libmp3lame',
-                             ab=f'{quality}k',
-                             loglevel='error')
-        ffmpeg.run(stream, capture_stdout=True, capture_stderr=True)
+                # Télécharger depuis YouTube avec retry
+                attempts = 3
+                for attempt in range(attempts):
+                    try:
+                        yt = YouTube(youtube_url)
+                        stream = yt.streams.filter(only_audio=True).order_by('abr').desc().first()
+                        if not stream:
+                            response = make_response('Impossible de trouver l\'audio dans la vidéo YouTube', 400)
+                            response.headers['Access-Control-Allow-Origin'] = '*'
+                            return response
+
+                        input_path = temp_dir / f"{uuid.uuid4()}.mp4"
+                        stream.download(filename=str(input_path))
+                        filename = yt.title
+                        break
+                    except Exception as e:
+                        if attempt == attempts - 1:  # Dernier essai
+                            raise
+                        continue
+            except Exception as e:
+                error_msg = str(e)
+                if "CERTIFICATE_VERIFY_FAILED" in error_msg:
+                    error_msg = "Erreur de certificat SSL lors de la connexion à YouTube"
+                elif "HTTP Error 400" in error_msg:
+                    error_msg = "URL YouTube invalide ou vidéo non disponible"
+                response = make_response(f'Erreur YouTube: {error_msg}', 400)
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                return response
+        else:
+            # Gérer l'upload de fichier
+            if 'file' not in request.files:
+                response = make_response('Aucun fichier sélectionné', 400)
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                return response
+
+            file = request.files['file']
+            if not file or file.filename == '':
+                response = make_response('Nom de fichier invalide', 400)
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                return response
+
+            input_path = temp_dir / f"{uuid.uuid4()}{Path(file.filename).suffix}"
+            file.save(input_path)
+            filename = file.filename
+
+        # Configurer la sortie selon le format demandé
+        output_path = temp_dir / f"{uuid.uuid4()}.{output_format}"
+
+        # Configurer ffmpeg selon le format
+        ffmpeg_stream = ffmpeg.input(str(input_path))
+        if output_format == 'mp3':
+            ffmpeg_stream = ffmpeg.output(ffmpeg_stream, str(output_path),
+                                      acodec='libmp3lame',
+                                      ab=f'{quality}k',
+                                      loglevel='error')
+        elif output_format == 'wav':
+            ffmpeg_stream = ffmpeg.output(ffmpeg_stream, str(output_path),
+                                      acodec='pcm_s16le',
+                                      loglevel='error')
+
+        # Convertir le fichier
+        ffmpeg.run(ffmpeg_stream, capture_stdout=True, capture_stderr=True)
 
         # Envoyer le fichier converti
-        response = send_file(output_path,
-                           mimetype='audio/mpeg',
-                           as_attachment=True,
-                           download_name=Path(file.filename).stem + '.mp3')
+        response = make_response(send_file(
+            output_path,
+            mimetype=f'audio/{output_format}',
+            as_attachment=True,
+            download_name=f"{Path(filename).stem}.{output_format}"
+        ))
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
 
         # Nettoyer les fichiers temporaires
         input_path.unlink(missing_ok=True)
@@ -348,10 +424,15 @@ def convert_audio():
         return response
 
     except Exception as e:
-        # Nettoyer en cas d'erreur
-        input_path.unlink(missing_ok=True)
-        output_path.unlink(missing_ok=True)
-        return str(e), 500
+        response = make_response(f'Erreur de conversion: {str(e)}', 500)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        return response
+    finally:
+        # Nettoyer les fichiers temporaires
+        if input_path and input_path.exists():
+            input_path.unlink(missing_ok=True)
+        if output_path and output_path.exists():
+            output_path.unlink(missing_ok=True)
 
 # Routes d'authentification
 @auth.route('/login', methods=['GET', 'POST'])
@@ -435,7 +516,7 @@ def logout():
 def dashboard():
     """Dashboard d'administration"""
     users = User.query.all()
-    return render_template('admin/dashboard.html', users=users)
+    return render_template('admin/dashboard.html', users=users, timedelta=timedelta)
 
 @admin.route('/users')
 @login_required
@@ -455,6 +536,7 @@ def create_user():
     password = request.form.get('password')
     is_active = bool(request.form.get('is_active'))
     can_access_mixer = bool(request.form.get('can_access_mixer'))
+    can_access_converter = bool(request.form.get('can_access_converter'))
     is_admin = bool(request.form.get('is_admin'))
 
     if User.query.filter_by(username=username).first():
@@ -470,6 +552,7 @@ def create_user():
         email=email,
         is_active=is_active,
         can_access_mixer=can_access_mixer,
+        can_access_converter=can_access_converter,
         is_admin=is_admin
     )
     user.set_password(password)
@@ -499,6 +582,7 @@ def update_user(user_id):
         # Mise à jour des droits
         user.is_active = bool(request.form.get('is_active'))
         user.can_access_mixer = bool(request.form.get('can_access_mixer'))
+        user.can_access_converter = bool(request.form.get('can_access_converter'))
         user.is_admin = bool(request.form.get('is_admin'))
 
         # Mise à jour de l'email

@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256))
     is_admin = db.Column(db.Boolean, default=False)
     can_access_mixer = db.Column(db.Boolean, default=False)  # Permission d'accès au mixer
+    can_access_converter = db.Column(db.Boolean, default=True)  # Permission d'accès au convertisseur
     is_active = db.Column(db.Boolean, default=True)  # Compte actif ou désactivé
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)

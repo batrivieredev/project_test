@@ -3,15 +3,18 @@
 {% block title %}Choisir un mode{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center justify-content-center vh-100">
-    <div class="card bg-dark border-secondary" style="width: 400px;">
-        <div class="card-header border-secondary">
-            <h4 class="card-title mb-0 text-center">
-                <span class="material-icons align-middle me-2">apps</span>
-                Choisir un mode
-            </h4>
-        </div>
-        <div class="card-body">
+<div class="mode-select-container vh-100">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card bg-dark mode-card">
+                    <div class="card-header border-glow">
+                        <h3 class="card-title text-center mb-0 text-gradient">
+                            <span class="material-icons align-middle me-2">headphones</span>
+                            DJ Pro Studio
+                        </h3>
+                    </div>
+                    <div class="card-body">
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             {% for category, message in messages %}
@@ -24,20 +27,28 @@
 
             <div class="d-grid gap-3">
                 {% if current_user.is_admin %}
-                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg btn-glow mode-button">
                     <span class="material-icons align-middle me-2">admin_panel_settings</span>
                     Administration
                 </a>
                 {% endif %}
 
+                {% if current_user.is_admin and current_user.can_access_mixer %}
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <span class="divider-text">MODE DJ</span>
+                    <div class="divider-line"></div>
+                </div>
+                {% endif %}
+
                 {% if current_user.can_access_mixer %}
-                <a href="{{ url_for('main.mixer') }}" class="btn btn-success btn-lg">
+                <a href="{{ url_for('main.mixer') }}" class="btn btn-success btn-lg btn-glow mode-button dj-button">
                     <span class="material-icons align-middle me-2">playlist_play</span>
                     DJ Mixer
                 </a>
                 {% endif %}
 
-                {% if not current_user.is_admin and not current_user.can_access_mixer %}
+                {% if not current_user.is_admin and not current_user.can_access_mixer and not current_user.can_access_converter %}
                 <div class="alert alert-warning">
                     <span class="material-icons align-middle me-2">warning</span>
                     Votre compte n'a pas encore d'accès. Un administrateur doit vous accorder les permissions nécessaires.
@@ -47,13 +58,15 @@
 
             <hr class="border-secondary my-4">
 
-            <a href="{{ url_for('main.converter') }}" class="btn btn-info btn-lg d-block mb-4">
+            {% if current_user.can_access_converter %}
+            <a href="{{ url_for('main.converter') }}" class="btn btn-info btn-lg d-block mb-4 btn-glow mode-button">
                 <span class="material-icons align-middle me-2">music_note</span>
                 Convertisseur Audio
             </a>
+            {% endif %}
 
             <div class="text-center">
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-glow-danger">
                     <span class="material-icons align-middle me-2">logout</span>
                     Déconnexion
                 </a>
@@ -63,18 +76,156 @@
 </div>
 
 <style>
+.mode-select-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    min-height: 100vh;
+}
+
+.mode-card {
+    background: linear-gradient(170deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: none;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    transform: translateY(0);
+    transition: all 0.3s ease;
+}
+
+.mode-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.border-glow {
+    border: none;
+    background: linear-gradient(90deg, #2a2a2a, #4a4a4a);
+    position: relative;
+}
+
+.border-glow::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+
+.text-gradient {
+    background: linear-gradient(90deg, #fff, #aaa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
 .btn-lg {
-    padding: 1rem;
-    font-size: 1.1rem;
+    padding: 1.2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.mode-button {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    margin-bottom: 1rem;
+}
+
+.mode-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+
+.mode-button:hover::before {
+    left: 100%;
+}
+
+.btn-glow {
+    box-shadow: 0 0 15px rgba(0,123,255,0.4);
+}
+
+.btn-glow:hover {
+    box-shadow: 0 0 30px rgba(0,123,255,0.6);
+    transform: translateY(-2px);
+}
+
+.btn-glow-danger {
+    box-shadow: 0 0 10px rgba(220,53,69,0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-glow-danger:hover {
+    box-shadow: 0 0 20px rgba(220,53,69,0.4);
+    transform: translateY(-2px);
+}
+
+.dj-button {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.dj-button:hover {
+    background: linear-gradient(45deg, #20c997, #28a745);
 }
 
 .material-icons {
     font-size: 24px;
     vertical-align: text-bottom;
+    margin-right: 8px;
 }
 
-.card {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+@keyframes glow {
+    0% { box-shadow: 0 0 15px rgba(0,123,255,0.4); }
+    50% { box-shadow: 0 0 25px rgba(0,123,255,0.6); }
+    100% { box-shadow: 0 0 15px rgba(0,123,255,0.4); }
+}
+
+.mode-button {
+    animation: glow 2s infinite;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5rem 0;
+    padding: 0 1rem;
+}
+
+.divider-line {
+    flex-grow: 1;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2) 20%,
+        rgba(255, 255, 255, 0.2) 80%,
+        transparent
+    );
+}
+
+.divider-text {
+    padding: 0 1rem;
+    color: #adb5bd;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    animation: neonText 2s infinite;
+}
+
+@keyframes neonText {
+    0%, 100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+    50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
 }
 </style>
 {% endblock %}

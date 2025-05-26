@@ -3,8 +3,9 @@
 {% block title %}Administration{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
+<div class="admin-container">
+    <div class="container-fluid">
+        <div class="row">
         {# Sidebar de navigation #}
         <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar">
             <div class="position-sticky pt-3">
@@ -51,29 +52,93 @@
 </div>
 
 <style>
+.admin-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    min-height: 100vh;
+}
+
 .sidebar {
     min-height: calc(100vh - 48px);
-    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+    background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
 }
 
 .sidebar .nav-link {
-    color: #6c757d;
-    padding: .5rem 1rem;
+    color: #adb5bd;
+    padding: 0.8rem 1rem;
+    margin: 0.2rem 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
 }
 
 .sidebar .nav-link.active {
-    color: #0d6efd;
-    background-color: rgba(13, 110, 253, 0.1);
+    color: #fff;
+    background: linear-gradient(45deg, #0d6efd, #0a58ca);
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.4);
 }
 
-.sidebar .nav-link:hover {
-    color: #0a58ca;
-    background-color: rgba(13, 110, 253, 0.05);
+.sidebar .nav-link:hover:not(.active) {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+.card {
+    background: linear-gradient(170deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    background: linear-gradient(90deg, #2a2a2a, #4a4a4a);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: linear-gradient(90deg, #2a2a2a, #1a1a1a);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .material-icons {
     font-size: 20px;
     vertical-align: text-bottom;
+}
+
+.btn {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #0d6efd, #0a58ca);
+    border: none;
+    box-shadow: 0 0 15px rgba(13, 110, 253, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0a58ca, #0d6efd);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(13, 110, 253, 0.5);
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 </style>
 {% endblock %}

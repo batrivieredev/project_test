@@ -103,6 +103,14 @@
                                                     Accès DJ Mixer
                                                 </label>
                                             </div>
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" class="form-check-input" name="can_access_converter"
+                                                       id="can_access_converter{{ user.id }}"
+                                                       {% if user.can_access_converter %}checked{% endif %}>
+                                                <label class="form-check-label" for="can_access_converter{{ user.id }}">
+                                                    Accès Convertisseur
+                                                </label>
+                                            </div>
                                             <div class="form-check">
                                                 <input type="checkbox" class="form-check-input" name="is_admin"
                                                        id="is_admin{{ user.id }}" {% if user.is_admin %}checked{% endif %}>
@@ -179,6 +187,13 @@
                                    id="new_can_access_mixer">
                             <label class="form-check-label" for="new_can_access_mixer">
                                 Accès DJ Mixer
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" name="can_access_converter"
+                                   id="new_can_access_converter" checked>
+                            <label class="form-check-label" for="new_can_access_converter">
+                                Accès Convertisseur
                             </label>
                         </div>
                         <div class="form-check">

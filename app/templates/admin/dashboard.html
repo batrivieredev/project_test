@@ -37,11 +37,11 @@
                 <div class="row text-center">
                     <div class="col">
                         <h3 class="mb-0">{{ users|selectattr('can_access_mixer')|list|length }}</h3>
-                        <small class="text-muted">Total</small>
+                        <small class="text-muted">Total DJ</small>
                     </div>
                     <div class="col">
-                        <h3 class="mb-0">{{ users|selectattr('can_access_mixer')|selectattr('is_active')|list|length }}</h3>
-                        <small class="text-muted">Actifs</small>
+                        <h3 class="mb-0">{{ users|selectattr('can_access_converter')|list|length }}</h3>
+                        <small class="text-muted">Total Convertisseur</small>
                     </div>
                 </div>
             </div>
@@ -99,7 +99,10 @@
                                             {{ 'Actif' if user.is_active else 'Inactif' }}
                                         </span>
                                         {% if not user.can_access_mixer %}
-                                        <span class="badge bg-warning">En attente d'accès</span>
+                                        <span class="badge bg-warning">En attente d'accès DJ</span>
+                                        {% endif %}
+                                        {% if not user.can_access_converter %}
+                                        <span class="badge bg-warning">En attente d'accès Convertisseur</span>
                                         {% endif %}
                                     </div>
                                 </td>

@@ -16,13 +16,15 @@
                 <div class="col-md-8 mx-auto">
                     <form id="converterForm" class="mb-4">
                         <div class="mb-3">
-                            <label for="audioFile" class="form-label">Sélectionner un fichier audio</label>
+                            <label for="audioFile" class="form-label">Sélectionner un fichier audio ou coller un lien YouTube</label>
                             <input type="file" class="form-control" id="audioFile" accept=".mp4,.wav,.aac,.m4a,.ogg">
+                            <input type="text" class="form-control mt-2" id="youtubeUrl" placeholder="Ou collez un lien YouTube ici">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Format de sortie</label>
                             <select class="form-select" id="outputFormat">
                                 <option value="mp3">MP3</option>
+                                <option value="wav">WAV</option>
                             </select>
                         </div>
                         <div class="mb-3">
@@ -57,16 +59,24 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
     e.preventDefault();
 
     const fileInput = document.getElementById('audioFile');
-    const file = fileInput.files[0];
-    if (!file) {
-        alert('Veuillez sélectionner un fichier');
+    const youtubeUrl = document.getElementById('youtubeUrl').value.trim();
+    const outputFormat = document.getElementById('outputFormat').value;
+    const quality = document.getElementById('quality').value;
+
+    if (!fileInput.files[0] && !youtubeUrl) {
+        alert('Veuillez sélectionner un fichier ou saisir un lien YouTube');
         return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('format', document.getElementById('outputFormat').value);
-    formData.append('quality', document.getElementById('quality').value);
+    formData.append('format', outputFormat);
+    formData.append('quality', quality);
+
+    if (youtubeUrl) {
+        formData.append('youtube_url', youtubeUrl);
+    } else {
+        formData.append('file', fileInput.files[0]);
+    }
 
     const progress = document.getElementById('progress');
     const progressBar = progress.querySelector('.progress-bar');
@@ -74,7 +84,7 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
 
     progress.classList.remove('d-none');
     progressBar.style.width = '0%';
-    statusText.textContent = 'Conversion en cours...';
+    statusText.textContent = youtubeUrl ? 'Téléchargement et conversion en cours...' : 'Conversion en cours...';
 
     try {
         const response = await fetch('/api/convert', {
@@ -87,7 +97,10 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = file.name.replace(/\.[^/.]+$/, '.mp3');
+            const downloadName = youtubeUrl
+                ? `youtube_video.${outputFormat}`  // Nom générique pour les vidéos YouTube
+                : fileInput.files[0].name.replace(/\.[^/.]+$/, '.' + outputFormat);
+            a.download = downloadName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -96,10 +109,13 @@ document.getElementById('converterForm').addEventListener('submit', async (e) =>
             statusText.textContent = 'Conversion terminée!';
             progressBar.style.width = '100%';
         } else {
-            throw new Error('Erreur lors de la conversion');
+            const errorText = await response.text();
+            throw new Error(errorText || 'Erreur lors de la conversion');
         }
     } catch (error) {
-        statusText.textContent = 'Erreur: ' + error.message;
+        statusText.textContent = error.message;
+        progressBar.style.width = '100%';
+        progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
         progressBar.classList.add('bg-danger');
     }
 });

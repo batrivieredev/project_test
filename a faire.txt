@@ -1,65 +1,12 @@
-quand je vais sur la partie administration ça marche pas :
+127.0.0.1 - - [26/May/2025 10:58:23] "GET / HTTP/1.1" 302 -
+127.0.0.1 - - [26/May/2025 10:58:23] "GET /choose HTTP/1.1" 200 -
+127.0.0.1 - - [26/May/2025 10:58:24] "GET /static/css/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/May/2025 10:58:25] "GET /admin/ HTTP/1.1" 200 -
+127.0.0.1 - - [26/May/2025 10:58:25] "GET /static/css/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/May/2025 10:58:33] "GET /converter HTTP/1.1" 200 -
+127.0.0.1 - - [26/May/2025 10:58:33] "GET /static/css/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [26/May/2025 10:58:40] "POST /api/convert HTTP/1.1" 413 -
 
-jinja2.exceptions.UndefinedError
-jinja2.exceptions.UndefinedError: 'timedelta' is undefined
-
-Traceback (most recent call last)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/app.py", line 2088, in __call__
-return self.wsgi_app(environ, start_response)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/werkzeug/middleware/proxy_fix.py", line 187, in __call__
-return self.app(environ, start_response)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/app.py", line 2073, in wsgi_app
-response = self.handle_exception(e)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/app.py", line 2070, in wsgi_app
-response = self.full_dispatch_request()
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/app.py", line 1515, in full_dispatch_request
-rv = self.handle_user_exception(e)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/app.py", line 1513, in full_dispatch_request
-rv = self.dispatch_request()
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/app.py", line 1499, in dispatch_request
-return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask_login/utils.py", line 272, in decorated_view
-return func(*args, **kwargs)
-File "/Users/batriviere/TEST_PORTFOLIO/app/routes.py", line 38, in decorated_function
-return f(*args, **kwargs)
-File "/Users/batriviere/TEST_PORTFOLIO/app/routes.py", line 438, in dashboard
-return render_template('admin/dashboard.html', users=users)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/templating.py", line 147, in render_template
-return _render(
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/flask/templating.py", line 128, in _render
-rv = template.render(context)
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/jinja2/environment.py", line 1301, in render
-self.environment.handle_exception()
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/jinja2/environment.py", line 936, in handle_exception
-raise rewrite_traceback_stack(source=source)
-File "/Users/batriviere/TEST_PORTFOLIO/app/templates/admin/dashboard.html", line 1, in top-level template code
-{% extends "admin/base.html" %}
-File "/Users/batriviere/TEST_PORTFOLIO/app/templates/admin/base.html", line 1, in top-level template code
-{% extends "base.html" %}
-File "/Users/batriviere/TEST_PORTFOLIO/app/templates/base.html", line 82, in top-level template code
-{% block content %}{% endblock %}
-File "/Users/batriviere/TEST_PORTFOLIO/app/templates/admin/base.html", line 48, in block 'content'
-{% block admin_content %}{% endblock %}
-File "/Users/batriviere/TEST_PORTFOLIO/app/templates/admin/dashboard.html", line 90, in block 'admin_content'
-{% set local_time = user.created_at.replace(tzinfo=None) + timedelta(hours=2) %}
-File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/jinja2/utils.py", line 83, in from_obj
-if hasattr(obj, "jinja_pass_arg"):
-jinja2.exceptions.UndefinedError: 'timedelta' is undefined
-The debugger caught an exception in your WSGI application. You can now look at the traceback which led to the error.
-To switch between the interactive traceback and the plaintext one, you can click on the "Traceback" headline. From the text traceback you can also create a paste of it. For code execution mouse-over the frame you want to debug and click on the console icon on the right side.
-
-You can execute arbitrary Python code in the stack frames and there are some extra helpers available for introspection:
-
-dump() shows all variables in the frame
-dump(obj) dumps all that's known about the object
-Brought to you by DON'T PANIC, your friendly Werkzeug powered traceback interpreter.
-
-
-Sur le mixer :
-
-les hight mid et low sont pas bien mis en page quand je suis en 2 decks je ne voit que la moitier, quand je suis en 4 decks je ne les voit pas du tout
-entre les boutons 4 deck et importer il y a 3 boutons qui servent à rien, remplace les pour que quand on clique dessus sa affiche l'administration, le convertisseru de musique et le dashboard
-et refait moi le readme
-ajouter à une playlist ne fonctionne pas
-le suivi de lecture est en haut de la page alors que je veux qu'il soit suivant chaque deck et qu'il soit sur les courbes
-
+le convertisseur marche pas et ajoute que l'ont puisse convertir en waw et d'autres formats audios , et rajoute un systeme de lien youtube vers mp3
+l'avancement de lecture n'est plus sur chaque musique, je veux qu'il soit sur les courbes de musique
+j'aime bien l'interface d'administrations, améliore la encore, fait du bootstrap

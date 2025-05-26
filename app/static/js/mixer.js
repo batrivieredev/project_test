@@ -95,8 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle track loading for all decks
     document.addEventListener('loadTrack', (e) => {
         const { track, deckId } = e.detail;
-        let targetDeck;
 
+        // Verify track object and ID exist
+        if (!track || !track.id) {
+            console.error('Invalid track data:', track);
+            return;
+        }
+
+        let targetDeck;
         switch(deckId) {
             case 'A':
                 targetDeck = deckA;
@@ -114,6 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (targetDeck) {
             targetDeck.loadTrack(track);
+        } else {
+            console.error('Invalid deck ID:', deckId);
         }
     });
 

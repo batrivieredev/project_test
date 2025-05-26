@@ -3,6 +3,9 @@ class TrackLibrary {
         this.playlists = [];
         this.tracks = [];
         this.currentPlaylist = null;
+        this.lastLoadedPlaylist = null;
+        this.loadPlaylistDebounceTimer = null;
+        this.cachedPlaylistTracks = new Map();
 
         // DOM Elements
         this.playlistsList = document.getElementById('playlistsList');
@@ -38,19 +41,39 @@ class TrackLibrary {
 
     async loadLibrary() {
         try {
-            // Chargement des playlists
-            const playlistsResponse = await fetch('/api/playlists');
-            this.playlists = await playlistsResponse.json();
-            this.renderPlaylists();
+            // Load playlists and tracks in parallel
+            const [playlistsResponse, tracksResponse] = await Promise.all([
+                fetch('/api/playlists'),
+                fetch('/api/tracks')
+            ]);
 
-            // Chargement des morceaux
-            const tracksResponse = await fetch('/api/tracks');
+            this.playlists = await playlistsResponse.json();
             this.tracks = await tracksResponse.json();
+
+            // Preload playlist tracks in the background
+            this.playlists.forEach(playlist => {
+                this.preloadPlaylistTracks(playlist.id);
+            });
+
+            this.renderPlaylists();
             this.renderTracks();
 
         } catch (error) {
             console.error('Erreur lors du chargement de la bibliothèque:', error);
             this.showError('Erreur lors du chargement de la bibliothèque');
+        }
+    }
+
+    async preloadPlaylistTracks(playlistId) {
+        try {
+            // Only preload if not already cached
+            if (!this.cachedPlaylistTracks.has(playlistId)) {
+                const response = await fetch(`/api/playlists/${playlistId}/tracks`);
+                const tracks = await response.json();
+                this.cachedPlaylistTracks.set(playlistId, tracks);
+            }
+        } catch (error) {
+            console.error(`Error preloading playlist ${playlistId}:`, error);
         }
     }
 
@@ -141,10 +164,21 @@ class TrackLibrary {
 
     async loadPlaylist(playlistId) {
         try {
+            // Check cache first
+            if (this.cachedPlaylistTracks.has(playlistId)) {
+                const tracks = this.cachedPlaylistTracks.get(playlistId);
+                this.currentPlaylist = playlistId;
+                this.renderTracks(tracks);
+                return;
+            }
+
+            // If not in cache, load immediately and cache
             const response = await fetch(`/api/playlists/${playlistId}/tracks`);
             const tracks = await response.json();
+            this.cachedPlaylistTracks.set(playlistId, tracks);
             this.currentPlaylist = playlistId;
             this.renderTracks(tracks);
+
         } catch (error) {
             console.error('Erreur lors du chargement de la playlist:', error);
             this.showError('Erreur lors du chargement de la playlist');
