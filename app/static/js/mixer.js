@@ -1,5 +1,31 @@
+// Theme handling
+let isDarkMode = true;
+
+function toggleTheme() {
+    isDarkMode = !isDarkMode;
+    document.body.classList.toggle('light-mode');
+    const themeIcon = document.querySelector('#themeToggle .material-icons');
+    themeIcon.textContent = isDarkMode ? 'dark_mode' : 'light_mode';
+
+    // Update UI elements
+    document.querySelectorAll('.card, .btn-outline-secondary, .table').forEach(el => {
+        el.classList.toggle('light-mode');
+    });
+
+    // Update background and text colors
+    if (isDarkMode) {
+        document.body.style.backgroundColor = '#121212';
+        document.body.style.color = '#fff';
+    } else {
+        document.body.style.backgroundColor = '#f8f9fa';
+        document.body.style.color = '#212529';
+    }
+}
+
 // Initialisation du mixer
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme toggle initialization
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     // Initialise la bibliothèque
     const library = new TrackLibrary();
 

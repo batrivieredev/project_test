@@ -26,10 +26,16 @@ def process_audio_file(file_path, playlist, user_id):
 
         if not track:
             # Extract metadata
-            audio = MP3(file_path, easy=True)
-            if audio:
-                title = audio.get('title', [os.path.splitext(os.path.basename(file_path))[0]])[0]
-                artist = audio.get('artist', ['Unknown Artist'])[0]
+            audio = MP3(file_path)
+            title = os.path.splitext(os.path.basename(file_path))[0]
+            artist = 'Unknown Artist'
+
+            if audio.tags:
+                try:
+                    title = audio.tags.get('TIT2', [title])[0].text[0]
+                    artist = audio.tags.get('TPE1', [artist])[0].text[0]
+                except (KeyError, IndexError, AttributeError):
+                    pass
                 print(f"📝 Adding track: {title} - {artist}")
 
                 # Detect BPM
@@ -163,7 +169,8 @@ def initialize_system():
             email='admin@example.com',
             is_admin=True,
             is_active=True,
-            can_access_mixer=True
+            can_access_mixer=True,
+            can_access_converter=True
         )
         admin.set_password('admin')
         db.session.add(admin)

@@ -17,15 +17,18 @@
                 <button class="btn btn-outline-secondary btn-sm" id="layout4Decks">4 Decks</button>
             </div>
             {# Visualisation controls #}
+
             <div class="btn-group me-3">
-                <button class="btn btn-outline-secondary btn-sm" id="spectrumVertical">
-                    <span class="material-icons">bar_chart</span>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" id="spectrumHorizontal">
-                    <span class="material-icons">analytics</span>
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" id="spectrumOff">
-                    <span class="material-icons">visibility_off</span>
+                <a href="{{ url_for('main.choose_mode') }}" class="btn btn-outline-primary btn-sm">
+                    <span class="material-icons">home</span>
+                </a>
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-info btn-sm">
+                    <span class="material-icons">admin_panel_settings</span>
+                </a>
+                {% endif %}
+                <button class="btn btn-outline-light btn-sm" id="themeToggle">
+                    <span class="material-icons">dark_mode</span>
                 </button>
             </div>
             <button class="btn btn-outline-primary btn-sm me-2" data-bs-toggle="modal" data-bs-target="#uploadModal">

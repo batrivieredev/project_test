@@ -23,6 +23,13 @@ auth = Blueprint('auth', __name__)
 api = Blueprint('api', __name__, url_prefix='/api')
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 
+@api.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    return response
+
 # Constantes et variables globales
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'aiff', 'ogg', 'm4a'}
 processing_queue = queue.Queue()
@@ -187,18 +194,24 @@ def process_audio_file(file_path, playlist=None, user_id=None):
 
         if not track:
             try:
-                # Extract metadata
-                audio = mutagen.File(file_path, easy=True)
-                if not audio:
-                    print(f"⚠️ Could not read metadata from: {file_path}")
-                    # Fallback to filename for title
-                    title = os.path.splitext(os.path.basename(file_path))[0]
-                    artist = 'Unknown Artist'
-                else:
-                    # Safely get metadata with fallbacks
-                    title = (audio.get('title', [None])[0] or
-                            os.path.splitext(os.path.basename(file_path))[0])
-                    artist = (audio.get('artist', [None])[0] or 'Unknown Artist')
+                # Extract metadata without 'easy' parameter
+                audio = mutagen.File(file_path)
+                title = os.path.splitext(os.path.basename(file_path))[0]
+                artist = 'Unknown Artist'
+
+                # Try to get metadata if available
+                if audio and hasattr(audio, 'tags'):
+                    try:
+                        if isinstance(audio.tags, dict):
+                            # MP3 and similar formats
+                            title = audio.tags.get('title', [title])[0]
+                            artist = audio.tags.get('artist', [artist])[0]
+                        else:
+                            # Other formats
+                            title = audio.tags.get('TITLE', [title])[0]
+                            artist = audio.tags.get('ARTIST', [artist])[0]
+                    except (KeyError, IndexError, AttributeError):
+                        pass
 
                 # Create new track
                 track = Track(
