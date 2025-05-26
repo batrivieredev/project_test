@@ -16,6 +16,8 @@ class TrackLibrary {
         this.uploadForm = document.getElementById('uploadForm');
         this.uploadButton = document.getElementById('startUpload');
         this.uploadProgress = document.getElementById('uploadProgress');
+        this.libraryPanel = document.querySelector('.library-panel');
+        this.libraryToggle = document.querySelector('.library-toggle');
 
         // Event Listeners
         this.attachEventListeners();
@@ -23,6 +25,9 @@ class TrackLibrary {
     }
 
     attachEventListeners() {
+        // Toggle du panneau de bibliothèque
+        this.libraryToggle.addEventListener('click', () => this.toggleLibrary());
+
         // Recherche
         this.searchInput.addEventListener('input', () => this.filterTracks());
 
@@ -310,6 +315,11 @@ class TrackLibrary {
     showError(message) {
         // TODO: Implémenter un système de notifications
         console.error('❌', message);
+    }
+    toggleLibrary() {
+        const wasHidden = this.libraryPanel.classList.contains('hidden');
+        this.libraryPanel.classList.toggle('hidden');
+        this.libraryToggle.querySelector('.material-icons').textContent = wasHidden ? 'close' : 'menu';
     }
 }
 
