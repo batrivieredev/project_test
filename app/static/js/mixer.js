@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const titleEl = this.element.querySelector('.track-name');
             const bpmEl = this.element.querySelector('.bpm-display');
 
-            if (titleEl) titleEl.textContent = track.title || 'No Track';
+            if (titleEl) titleEl.textContent = track.title || 'Pas de morceau';
             if (bpmEl) bpmEl.textContent = track.bpm ? `${track.bpm} BPM` : '--- BPM';
         }
 
@@ -258,7 +258,32 @@ document.addEventListener('DOMContentLoaded', function() {
         d: new Deck('d')
     };
 
-    // Chargement et affichage des playlists
+    // Initialisation du panneau des playlists
+    function initializePlaylists() {
+        const playlistsList = document.querySelector('.playlists-panel');
+        if (playlistsList) {
+            // Ajouter le bouton "Bibliothèque complète"
+            const allTracksBtn = document.createElement('div');
+            allTracksBtn.className = 'playlist-item active';
+            allTracksBtn.innerHTML = `
+                <span class="material-icons">library_music</span>
+                Bibliothèque complète
+            `;
+            allTracksBtn.onclick = () => {
+                loadTracks();
+                document.querySelectorAll('.playlist-item').forEach(item =>
+                    item.classList.remove('active'));
+                allTracksBtn.classList.add('active');
+                currentPlaylist = null;
+            };
+            playlistsList.insertBefore(allTracksBtn, playlistsList.firstChild);
+
+            // Afficher les playlists initiales
+            loadPlaylists();
+        }
+    }
+
+    // Chargement et affichage des playlists depuis le serveur
     async function loadPlaylists() {
         try {
             const response = await fetch('/api/playlists');
@@ -266,12 +291,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const playlistsList = document.querySelector('.playlists-panel');
 
             if (playlistsList) {
-                playlistsList.innerHTML = playlists.map(playlist => `
+                // Conserver le bouton "Bibliothèque complète"
+                const allTracksBtn = playlistsList.firstChild;
+
+                // Ajouter les playlists
+                const playlistsHtml = playlists.map(playlist => `
                     <div class="playlist-item" data-playlist-id="${playlist.id}">
                         <span class="material-icons">playlist_play</span>
                         ${playlist.name}
                     </div>
                 `).join('');
+
+                // Mettre à jour le contenu en préservant le bouton
+                if (allTracksBtn) {
+                    playlistsList.innerHTML = '';
+                    playlistsList.appendChild(allTracksBtn);
+                    playlistsList.insertAdjacentHTML('beforeend', playlistsHtml);
+                } else {
+                    playlistsList.innerHTML = playlistsHtml;
+                }
 
                 // Add click handlers
                 playlistsList.querySelectorAll('.playlist-item').forEach(item => {
@@ -291,8 +329,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Charge les morceaux d'une playlist spécifique
+    // Charge et affiche les morceaux d'une playlist
     async function loadPlaylistTracks(playlistId) {
+        // Stocke la playlist active
+        currentPlaylist = playlistId;
         try {
             const response = await fetch(`/api/playlists/${playlistId}/tracks`);
             const tracks = await response.json();
@@ -301,18 +341,18 @@ document.addEventListener('DOMContentLoaded', function() {
             if (tracksList) {
                 tracksList.innerHTML = tracks.length ? tracks.map(track => `
                     <tr class="track-row" draggable="true" data-track-id="${track.id}">
-                        <td>${track.title || 'Unknown Title'}</td>
-                        <td>${track.artist || 'Unknown Artist'}</td>
-                        <td>${track.bpm || '---'}</td>
+                        <td>${track.title || 'Titre inconnu'}</td>
+                        <td>${track.artist || 'Artiste inconnu'}</td>
+                        <td>${track.bpm ? `${track.bpm} BPM` : '---'}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-secondary" onclick="analyzeBPM(${track.id})">
                                 <span class="material-icons">speed</span>
                             </button>
                         </td>
                     </tr>
-                `).join('') : '<tr><td colspan="4" class="text-center">No tracks found</td></tr>';
+                `).join('') : '<tr><td colspan="4" class="text-center">Aucun morceau trouvé</td></tr>';
 
-                // Add drag handlers
+                // Ajouter les gestionnaires de drag & drop
                 tracksList.querySelectorAll('tr[data-track-id]').forEach(row => {
                     row.ondragstart = (e) => {
                         e.dataTransfer.setData('text/plain', row.dataset.trackId);
@@ -343,9 +383,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (tracksList) {
                 tracksList.innerHTML = tracks.length ? tracks.map(track => `
                     <tr class="track-row" draggable="true" data-track-id="${track.id}">
-                        <td>${track.title || 'Unknown Title'}</td>
-                        <td>${track.artist || 'Unknown Artist'}</td>
-                        <td>${track.bpm || '---'}</td>
+                        <td>${track.title || 'Titre inconnu'}</td>
+                        <td>${track.artist || 'Artiste inconnu'}</td>
+                        <td>${track.bpm ? `${track.bpm} BPM` : '---'}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-secondary" onclick="analyzeBPM(${track.id})">
                                 <span class="material-icons">speed</span>
@@ -375,9 +415,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Chargement initial des playlists et morceaux
-    loadPlaylists();
-    loadTracks();
+    // Initialisation de l'interface
+    initializePlaylists();
+
+    // Fonction pour attacher les gestionnaires d'événements aux boutons de sélection des decks
+    function attachDeckSelectorHandlers() {
+        document.querySelectorAll('.library-controls button').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.library-controls button').forEach(b =>
+                    b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+        });
+    }
 
     // Gestion du switch entre 2 et 4 decks
     const layout2DecksBtn = document.getElementById('layout2Decks');
@@ -389,6 +439,26 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
             deck.style.display = 'none');
 
+        // Fonction pour mettre à jour les boutons de sélection des decks
+        function updateDeckSelectors(mode) {
+            const controls = document.querySelector('.library-controls');
+            if (mode === 2) {
+                controls.innerHTML = `
+                    <button class="btn btn-outline-primary active" data-deck="A">Deck A</button>
+                    <button class="btn btn-outline-danger" data-deck="B">Deck B</button>
+                `;
+            } else {
+                controls.innerHTML = `
+                    <button class="btn btn-outline-primary active" data-deck="A">Deck A</button>
+                    <button class="btn btn-outline-danger" data-deck="B">Deck B</button>
+                    <button class="btn btn-outline-warning" data-deck="C">Deck C</button>
+                    <button class="btn btn-outline-info" data-deck="D">Deck D</button>
+                `;
+            }
+            // Réattacher les gestionnaires d'événements aux boutons
+            attachDeckSelectorHandlers();
+        }
+
         layout2DecksBtn.onclick = () => {
             decksCount = 2;
             const decksContainer = document.querySelector('.row.g-3');
@@ -396,6 +466,9 @@ document.addEventListener('DOMContentLoaded', function() {
             decksContainer.classList.add('two-decks');
             document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
                 deck.style.display = 'none');
+            layout2DecksBtn.classList.add('active');
+            layout4DecksBtn.classList.remove('active');
+            updateDeckSelectors(2);
             layout2DecksBtn.classList.add('active');
             layout4DecksBtn.classList.remove('active');
         };
@@ -407,6 +480,9 @@ document.addEventListener('DOMContentLoaded', function() {
             decksContainer.classList.add('four-decks');
             document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
                 deck.style.display = 'block');
+            layout4DecksBtn.classList.add('active');
+            layout2DecksBtn.classList.remove('active');
+            updateDeckSelectors(4);
             layout4DecksBtn.classList.add('active');
             layout2DecksBtn.classList.remove('active');
         };

@@ -82,108 +82,227 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @requires_app_context
-def scan_music_folders(user=None):
-    """Scanne les dossiers de musique configurés"""
-    app = current_app._get_current_object()
-    print("\n🎵 Starting music library scan...")
+def scan_music_folders(user=None, parent_folder=None, current_depth=0, max_depth=5):
+    """
+    Scanne récursivement les dossiers de musique et crée une hiérarchie de playlists.
 
+    Args:
+        user: Utilisateur pour qui scanner les dossiers
+        parent_folder: Dossier parent à scanner (None = dossier racine de l'utilisateur)
+        current_depth: Profondeur actuelle de la récursion
+        max_depth: Profondeur maximale de scan (évite les boucles infinies)
+
+    Returns:
+        bool: True si le scan s'est bien passé
+        int: Nombre de morceaux traités
+    """
     if not user:
-        print("❌ No user provided for scan")
-        return
+        print("❌ Aucun utilisateur fourni pour le scan")
+        return False, 0
 
-    # Ne scanne que le dossier d'upload de l'utilisateur
-    upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(user.id))
-    if not os.path.exists(upload_dir):
-        os.makedirs(upload_dir)
-        print(f"📂 Created upload directory: {upload_dir}")
-        return
+    if current_depth > max_depth:
+        print(f"⚠️ Profondeur maximale atteinte ({max_depth})")
+        return True, 0
+
+    app = current_app._get_current_object()
+    indent = "  " * current_depth
+    folder_path = parent_folder or os.path.join(app.config['UPLOAD_FOLDER'], str(user.id))
+    folder_name = os.path.basename(folder_path)
+    total_tracks = 0
 
     try:
-        print(f"\n📁 Scanning uploads directory: {upload_dir}")
-        scan_folder(upload_dir, user_id=user.id)
-        db.session.commit()
-        print("✅ Upload directory scan completed!")
-    except Exception as e:
-        db.session.rollback()
-        print(f"\n❌ Error scanning music folders: {str(e)}")
+        print(f"\n{indent}📁 Scan du dossier : {folder_name}")
 
-def scan_folder(folder_path, user_id=None, show_details=False):
-    """Scan un dossier pour les fichiers musicaux"""
-    try:
-        # Skip system directories
+        # Vérifier si le dossier doit être ignoré
         if any(x in folder_path for x in ['.lproj', 'CodeSignature', 'Resources', '.app', '__pycache__']):
-            return
+            return True, 0
 
-        if user_id is None:
-            user_id = current_user.id if current_user else 1
+        # Créer le dossier s'il n'existe pas
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print(f"{indent}📂 Création du dossier : {folder_name}")
+            return True, 0
 
-        # Find or create playlist
+        # Scanner le dossier actuel
+        success, processed, playlist = scan_folder(folder_path, user.id, None, current_depth)
+        if success:
+            total_tracks += processed
+        else:
+            print(f"{indent}❌ Échec du scan pour {folder_name}")
+            return False, 0
+
+        # Scanner récursivement les sous-dossiers
+        subdirs = [d for d in os.listdir(folder_path)
+                  if os.path.isdir(os.path.join(folder_path, d))
+                  and not d.startswith('.')]
+
+        for subdir in subdirs:
+            subdir_path = os.path.join(folder_path, subdir)
+            sub_success, sub_tracks = scan_music_folders(
+                user=user,
+                parent_folder=subdir_path,
+                parent_playlist=playlist,
+                current_depth=current_depth + 1,
+                max_depth=max_depth
+            )
+            if sub_success:
+                total_tracks += sub_tracks
+
+        print(f"{indent}✅ Scan terminé pour {folder_name}")
+        return True, total_tracks
+
+    except Exception as e:
+        print(f"{indent}❌ Erreur lors du scan de {folder_name}: {str(e)}")
+        return False, 0
+
+def get_music_folders(base_path):
+    """Retourne la liste des dossiers de musique valides"""
+    music_folders = []
+    for root, dirs, files in os.walk(base_path):
+        # Ignorer les dossiers système
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+
+        # Vérifier si le dossier contient des fichiers audio
+        has_music = any(allowed_file(f) for f in files)
+        if has_music:
+            music_folders.append(root)
+    return music_folders
+
+def process_folder_files(folder_path, playlist, user_id, indent=""):
+    """
+    Traite tous les fichiers audio d'un dossier.
+
+    Args:
+        folder_path (str): Chemin du dossier
+        playlist (Playlist): Playlist à mettre à jour
+        user_id (int): ID de l'utilisateur
+        indent (str): Indentation pour les logs
+
+    Returns:
+        int: Nombre de morceaux traités
+    """
+    current_files = set()
+    processed_tracks = 0
+    existing_tracks = {pt.track.file_path: pt for pt in playlist.tracks if pt.track}
+
+    # Scanner les fichiers audio
+    for file in os.listdir(folder_path):
+        if not allowed_file(file):
+            continue
+
+        file_path = os.path.join(folder_path, file)
+        current_files.add(file_path)
+
+        # Traiter seulement les nouveaux fichiers
+        if file_path not in existing_tracks:
+            try:
+                track = process_audio_file(file_path, playlist, user_id)
+                if track and track.id:
+                    processed_tracks += 1
+                    print(f"{indent}✅ Ajout du morceau : {track.title}")
+                else:
+                    print(f"{indent}⚠️ Échec du traitement : {file}")
+            except Exception as e:
+                print(f"{indent}❌ Erreur de traitement {file}: {str(e)}")
+
+    # Supprimer les morceaux qui n'existent plus
+    for old_path, pt in existing_tracks.items():
+        if old_path not in current_files:
+            print(f"{indent}🗑️ Suppression du morceau manquant : {pt.track.title}")
+            db.session.delete(pt)
+            db.session.delete(pt.track)
+
+    return processed_tracks
+
+
+def scan_folder(folder_path, user_id, parent_playlist=None, current_depth=0):
+    """
+    Scanne un dossier et crée une hiérarchie de playlists.
+
+    Args:
+        folder_path (str): Chemin du dossier à scanner
+        user_id (int): ID de l'utilisateur
+        parent_playlist (Playlist): Playlist parente
+        current_depth (int): Profondeur actuelle
+
+    Returns:
+        tuple: (success, total_tracks, playlist)
+            - success: True si le scan s'est bien passé
+            - total_tracks: Nombre de morceaux traités
+            - playlist: Playlist créée ou mise à jour
+    """
+    indent = "  " * current_depth
+    folder_name = os.path.basename(folder_path)
+    total_tracks = 0
+
+    try:
+        # Vérifier si le dossier doit être ignoré
+        if any(x in folder_path for x in ['.lproj', 'CodeSignature', 'Resources', '.app', '__pycache__']):
+            return True, 0, None
+
+        # Créer le dossier si nécessaire
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+            print(f"{indent}📂 Création du dossier : {folder_name}")
+            return True, 0, None
+
+        print(f"{indent}📁 Scan du dossier : {folder_name}")
+
+        # Chercher ou créer la playlist
         playlist = Playlist.query.filter_by(
             folder_path=folder_path,
-            user_id=user_id
+            user_id=user_id,
+            is_auto=True,
+            parent_id=parent_playlist.id if parent_playlist else None
         ).first()
 
         if not playlist:
             playlist = Playlist(
-                name=os.path.basename(folder_path),
+                name=folder_name,
                 folder_path=folder_path,
                 is_auto=True,
-                user_id=user_id
+                user_id=user_id,
+                parent_id=parent_playlist.id if parent_playlist else None
             )
             db.session.add(playlist)
             db.session.flush()
+            print(f"{indent}✨ Nouvelle playlist créée : {folder_name}")
+        else:
+            print(f"{indent}📝 Mise à jour de la playlist : {folder_name}")
 
-        # Get existing files and initialize tracking sets
-        existing_files = set()
-        current_files = set()
+        # Traiter les fichiers du dossier
+        processed = process_folder_files(folder_path, playlist, user_id, indent)
+        total_tracks += processed
+        print(f"{indent}✅ {processed} morceaux traités dans {folder_name}")
 
-        # Build set of existing track file paths
-        for pt in playlist.tracks:
-            if pt and pt.track and pt.track.file_path:
-                existing_files.add(pt.track.file_path)
+        # Scanner les sous-dossiers
+        subdirs = [d for d in os.listdir(folder_path)
+                  if os.path.isdir(os.path.join(folder_path, d))
+                  and not d.startswith('.')]
 
-        # Get list of music files in folder
-        music_files = [f for f in os.listdir(folder_path) if allowed_file(f)]
+        for subdir in subdirs:
+            subdir_path = os.path.join(folder_path, subdir)
+            success, sub_tracks, sub_playlist = scan_folder(
+                subdir_path,
+                user_id,
+                playlist,
+                current_depth + 1
+            )
+            if success:
+                total_tracks += sub_tracks
 
-        if music_files:
-            print(f"✨ Scanning playlist: {os.path.basename(folder_path)} ({len(music_files)} tracks)")
-
-            for file in music_files:
-                try:
-                    file_path = os.path.join(folder_path, file)
-                    current_files.add(file_path)
-                    if file_path not in existing_files:
-                        track = process_audio_file(file_path, playlist)
-                        if track and track.id:  # Only continue if track was created successfully
-                            print(f"✅ Added track: {track.title}")
-                        else:
-                            print(f"⚠️ Failed to process: {file}")
-                except Exception as e:
-                    print(f"❌ Error processing {file}: {str(e)}")
-                    continue
-
-        if music_files or any(x in folder_path.lower() for x in {'music', 'musique', 'mp3', 'audio', 'downloads', 'téléchargements', 'uploads'}):
-            subfolders = [d for d in os.listdir(folder_path)
-                        if os.path.isdir(os.path.join(folder_path, d))
-                        and not d.startswith('.')
-                        and not d.startswith('_')]
-
-            for subfolder in subfolders:
-                try:
-                    subfolder_path = os.path.join(folder_path, subfolder)
-                    scan_folder(subfolder_path, user_id, show_details)
-                except Exception:
-                    continue
+        return True, total_tracks, playlist
 
     except Exception as e:
-        if show_details and not any(x in folder_path for x in ['.lproj', 'CodeSignature', 'Resources']):
-            print(f"❌ Error scanning folder {folder_path}: {str(e)}")
+        print(f"{indent}❌ Erreur lors du scan de {folder_name}: {str(e)}")
         db.session.rollback()
+        return False, 0, None
+
 
 def process_audio_file(file_path, playlist=None, user_id=None):
     """Traite un fichier audio et l'ajoute à la base de données"""
     if not os.path.exists(file_path):
-        print(f"❌ File not found: {file_path}")
+        print(f"❌ Fichier non trouvé : {file_path}")
         return None
 
     try:
@@ -198,26 +317,26 @@ def process_audio_file(file_path, playlist=None, user_id=None):
 
         if not track:
             try:
-                # Extract metadata without 'easy' parameter
+                # Extraire les métadonnées du fichier
                 audio = mutagen.File(file_path)
                 title = os.path.splitext(os.path.basename(file_path))[0]
-                artist = 'Unknown Artist'
+                artist = 'Artiste inconnu'
 
-                # Try to get metadata if available
+                # Récupérer les métadonnées si disponibles
                 if audio and hasattr(audio, 'tags'):
                     try:
                         if isinstance(audio.tags, dict):
-                            # MP3 and similar formats
+                            # Formats MP3 et similaires
                             title = audio.tags.get('title', [title])[0]
                             artist = audio.tags.get('artist', [artist])[0]
                         else:
-                            # Other formats
+                            # Autres formats
                             title = audio.tags.get('TITLE', [title])[0]
                             artist = audio.tags.get('ARTIST', [artist])[0]
                     except (KeyError, IndexError, AttributeError):
                         pass
 
-                # Create new track
+                # Créer le nouveau morceau
                 track = Track(
                     title=title,
                     artist=artist,
@@ -230,10 +349,10 @@ def process_audio_file(file_path, playlist=None, user_id=None):
                 )
                 db.session.add(track)
                 db.session.flush()
-                print(f"✨ Created track: {title} - {artist}")
+                print(f"✨ Création du morceau : {title} - {artist}")
 
             except Exception as e:
-                print(f"❌ Error extracting metadata from {file_path}: {str(e)}")
+                print(f"❌ Erreur lors de l'extraction des métadonnées de {file_path}: {str(e)}")
                 return None
 
         # Add to playlist if specified and not already in it
@@ -247,16 +366,23 @@ def process_audio_file(file_path, playlist=None, user_id=None):
                         position=len(playlist.tracks)
                     )
                     db.session.add(playlist_track)
+                    # Supprime les morceaux qui n'existent plus
+                    for old_path, playlist_track in existing_tracks.items():
+                        if old_path not in current_files:
+                            print(f"🗑️ Suppression du morceau manquant : {playlist_track.track.title}")
+                            db.session.delete(playlist_track.track)
+
+                    # Sauvegarde les modifications
                     db.session.flush()
-                    print(f"✨ Added to playlist: {track.title}")
+                    print(f"✨ Ajouté à la playlist : {track.title}")
             except Exception as e:
-                print(f"❌ Error adding to playlist: {str(e)}")
+                print(f"❌ Erreur lors de l'ajout à la playlist : {str(e)}")
                 # Don't raise here, still return the track
 
         return track
 
     except Exception as e:
-        print(f"❌ Error processing {file_path}: {str(e)}")
+        print(f"❌ Erreur lors du traitement de {file_path}: {str(e)}")
         return None
 
 def detect_bpm(file_path):
@@ -823,20 +949,42 @@ def analyze_track_bpm(track_id):
 @login_required
 @mixer_access_required
 def scan_music():
-    """Lance le scan de la bibliothèque musicale"""
+    """Lance le scan de la bibliothèque musicale de l'utilisateur"""
     print("\n🔄 Lancement du scan de la bibliothèque...")
     user_id = current_user.id
+    max_depth = request.args.get('max_depth', default=5, type=int)
 
     def scan_with_user():
         with current_app.app_context():
-            # Requery user to avoid DetachedInstanceError
-            user = User.query.get(user_id)
-            if user:
-                # Pass user object to avoid current_user issues in thread
-                scan_music_folders(user=user)
+            user = User.query.get(user_id)  # Requery to avoid DetachedInstanceError
+            if not user:
+                print("❌ Utilisateur non trouvé")
+                return
 
-    threading.Thread(target=scan_with_user).start()
-    return jsonify({'message': 'Scan démarré'})
+            try:
+                # Scanner les dossiers de musique avec retour d'informations
+                success, total_tracks = scan_music_folders(
+                    user=user,
+                    max_depth=max_depth
+                )
+
+                if success:
+                    print(f"✅ Scan terminé ! {total_tracks} morceaux traités")
+                else:
+                    print("❌ Échec du scan de la bibliothèque")
+
+            except Exception as e:
+                print(f"❌ Erreur lors du scan : {str(e)}")
+
+    # Démarrer le scan dans un thread séparé
+    thread = threading.Thread(target=scan_with_user)
+    thread.daemon = True  # Le thread s'arrêtera quand le programme principal s'arrête
+    thread.start()
+
+    return jsonify({
+        'message': 'Scan démarré',
+        'max_depth': max_depth
+    })
 
 @api.route('/tracks', methods=['POST'])
 @login_required
