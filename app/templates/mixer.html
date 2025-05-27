@@ -31,16 +31,22 @@
             <a href="{{ url_for('main.choose_mode') }}" class="btn btn-outline-secondary me-2">
                 <span class="material-icons">home</span>
             </a>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger">
-                <span class="material-icons">logout</span>
             </a>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="flex-grow-1 d-flex flex-column">
-        <!-- Decks Section -->
-        <div class="container-fluid p-3">
+    <div class="flex-grow-1 d-flex">
+        <!-- Playlists Panel -->
+        <div class="playlists-panel p-3" style="width: 250px;">
+            <h5 class="mb-3">Playlists</h5>
+            <!-- Playlists will be loaded dynamically -->
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-grow-1 d-flex flex-column">
+            <!-- Decks Section -->
+            <div class="container-fluid p-3">
             <div class="row g-3">
                 <!-- Deck A -->
                 <div class="col-md-6">
@@ -75,7 +81,7 @@
 
                 <!-- Deck B -->
                 <div class="col-md-6">
-                    <div class="card bg-dark border-danger" id="deck-b">
+                    <div class="card bg-dark border-danger deck" id="deck-b">
                         <div class="card-header bg-dark d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">Deck B</h5>
                             <div class="text-end">
@@ -103,6 +109,68 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Deck C -->
+                <div class="col-md-6">
+                    <div class="card bg-dark border-warning deck" id="deck-c">
+                        <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Deck C</h5>
+                            <div class="text-end">
+                                <div class="track-name text-truncate">No Track</div>
+                                <small class="text-muted bpm-display">--- BPM</small>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="controls btn-group w-100 mb-3">
+                                <button class="btn btn-outline-warning"><span class="material-icons">play_arrow</span></button>
+                                <button class="btn btn-outline-warning"><span class="material-icons">pause</span></button>
+                                <button class="btn btn-outline-warning"><span class="material-icons">adjust</span></button>
+                                <button class="btn btn-outline-warning"><span class="material-icons">loop</span></button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label">Volume</label>
+                                    <input type="range" class="form-range" id="volume-c" min="0" max="100" value="100">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Pitch</label>
+                                    <input type="range" class="form-range" id="pitch-c" min="-8" max="8" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deck D -->
+                <div class="col-md-6">
+                    <div class="card bg-dark border-info deck" id="deck-d">
+                        <div class="card-header bg-dark d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Deck D</h5>
+                            <div class="text-end">
+                                <div class="track-name text-truncate">No Track</div>
+                                <small class="text-muted bpm-display">--- BPM</small>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="controls btn-group w-100 mb-3">
+                                <button class="btn btn-outline-info"><span class="material-icons">play_arrow</span></button>
+                                <button class="btn btn-outline-info"><span class="material-icons">pause</span></button>
+                                <button class="btn btn-outline-info"><span class="material-icons">adjust</span></button>
+                                <button class="btn btn-outline-info"><span class="material-icons">loop</span></button>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label">Volume</label>
+                                    <input type="range" class="form-range" id="volume-d" min="0" max="100" value="100">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Pitch</label>
+                                    <input type="range" class="form-range" id="pitch-d" min="-8" max="8" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -125,6 +193,8 @@
                                 <div class="btn-group library-controls">
                                     <button class="btn btn-outline-primary active" data-deck="A">Deck A</button>
                                     <button class="btn btn-outline-danger" data-deck="B">Deck B</button>
+                                    <button class="btn btn-outline-warning" data-deck="C">Deck C</button>
+                                    <button class="btn btn-outline-info" data-deck="D">Deck D</button>
                                 </div>
                             </div>
                             <div class="col-auto">

@@ -1,6 +1,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Audio Context
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    let analyserNodes = new Map();
+
+    // State
+    let currentPlaylist = null;
+    let decksCount = 2;
 
     // Deck initialization
     class Deck {
@@ -9,8 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
             this.audio = new Audio();
             this.isPlaying = false;
             this.gainNode = audioContext.createGain();
-            this.gainNode.connect(audioContext.destination);
+            this.analyserNode = audioContext.createAnalyser();
+            this.gainNode.connect(this.analyserNode);
+            this.analyserNode.connect(audioContext.destination);
             this.source = null;
+
+            // Analyser configuration
+            this.analyserNode.fftSize = 2048;
+            this.bufferLength = this.analyserNode.frequencyBinCount;
+            this.dataArray = new Uint8Array(this.bufferLength);
 
             // DOM elements
             this.element = document.getElementById(`deck-${id}`);
@@ -18,6 +30,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             this.setupControls();
             this.setupAudio();
+            this.setupWaveform();
+            this.setupDragAndDrop();
         }
 
         setupControls() {
@@ -52,6 +66,107 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.isPlaying = false;
                 this.updateButtons();
             };
+
+            this.audio.ontimeupdate = () => {
+                this.updateProgress();
+            };
+        }
+
+        setupWaveform() {
+            const waveformContainer = document.createElement('div');
+            waveformContainer.className = 'waveform-container';
+
+            const waveform = document.createElement('canvas');
+            waveform.className = 'waveform';
+            waveformContainer.appendChild(waveform);
+
+            const progress = document.createElement('div');
+            progress.className = 'waveform-progress';
+            waveformContainer.appendChild(progress);
+
+            // Insert after controls
+            const controls = this.element.querySelector('.controls');
+            controls.parentNode.insertBefore(waveformContainer, controls.nextSibling);
+
+            this.waveform = waveform;
+            this.waveformProgress = progress;
+            this.waveformCtx = waveform.getContext('2d');
+
+            // Click handling for seeking
+            waveformContainer.onclick = (e) => {
+                const rect = waveformContainer.getBoundingClientRect();
+                const clickPosition = (e.clientX - rect.left) / rect.width;
+                this.audio.currentTime = this.audio.duration * clickPosition;
+            };
+
+            // Start animation
+            this.drawWaveform();
+        }
+
+        setupDragAndDrop() {
+            this.element.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                this.element.classList.add('drag-over');
+            });
+
+            this.element.addEventListener('dragleave', () => {
+                this.element.classList.remove('drag-over');
+            });
+
+            this.element.addEventListener('drop', (e) => {
+                e.preventDefault();
+                this.element.classList.remove('drag-over');
+                const trackId = e.dataTransfer.getData('text/plain');
+                if (trackId) {
+                    this.loadTrack(trackId);
+                }
+            });
+        }
+
+        drawWaveform() {
+            requestAnimationFrame(() => this.drawWaveform());
+
+            const canvas = this.waveform;
+            const ctx = this.waveformCtx;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Ensure canvas size matches container
+            const container = canvas.parentElement;
+            if (canvas.width !== container.clientWidth) {
+                canvas.width = container.clientWidth;
+            }
+            if (canvas.height !== container.clientHeight) {
+                canvas.height = container.clientHeight;
+            }
+
+            // Get frequency data
+            this.analyserNode.getByteFrequencyData(this.dataArray);
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw frequency bars
+            const barWidth = width / this.bufferLength;
+            let x = 0;
+
+            for(let i = 0; i < this.bufferLength; i++) {
+                const barHeight = (this.dataArray[i] / 255) * height;
+
+                // Color gradient based on frequency
+                const hue = i / this.bufferLength * 360;
+                ctx.fillStyle = `hsl(${hue}, 70%, 50%)`;
+
+                ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+                x += barWidth;
+            }
+        }
+
+        updateProgress() {
+            if (this.audio.duration) {
+                const progress = (this.audio.currentTime / this.audio.duration) * 100;
+                this.waveformProgress.style.width = `${progress}%`;
+            }
         }
 
         async loadTrack(trackId) {
@@ -128,19 +243,54 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize decks
     const decks = {
         a: new Deck('a'),
-        b: new Deck('b')
+        b: new Deck('b'),
+        c: new Deck('c'),
+        d: new Deck('d')
     };
 
-    // Load and display tracks
-    async function loadTracks() {
+    // Initialize playlist view
+    async function loadPlaylists() {
         try {
-            const response = await fetch('/api/tracks');
+            const response = await fetch('/api/playlists');
+            const playlists = await response.json();
+            const playlistsList = document.querySelector('.playlists-panel');
+
+            if (playlistsList) {
+                playlistsList.innerHTML = playlists.map(playlist => `
+                    <div class="playlist-item" data-playlist-id="${playlist.id}">
+                        <span class="material-icons">playlist_play</span>
+                        ${playlist.name}
+                    </div>
+                `).join('');
+
+                // Add click handlers
+                playlistsList.querySelectorAll('.playlist-item').forEach(item => {
+                    item.onclick = () => {
+                        const playlistId = item.dataset.playlistId;
+                        loadPlaylistTracks(playlistId);
+
+                        // Update active state
+                        playlistsList.querySelectorAll('.playlist-item').forEach(p =>
+                            p.classList.remove('active'));
+                        item.classList.add('active');
+                    };
+                });
+            }
+        } catch (error) {
+            console.error('Error loading playlists:', error);
+        }
+    }
+
+    // Load tracks for a specific playlist
+    async function loadPlaylistTracks(playlistId) {
+        try {
+            const response = await fetch(`/api/playlists/${playlistId}/tracks`);
             const tracks = await response.json();
             const tracksList = document.getElementById('tracksList');
 
             if (tracksList) {
                 tracksList.innerHTML = tracks.length ? tracks.map(track => `
-                    <tr data-track-id="${track.id}">
+                    <tr class="track-row" draggable="true" data-track-id="${track.id}">
                         <td>${track.title || 'Unknown Title'}</td>
                         <td>${track.artist || 'Unknown Artist'}</td>
                         <td>${track.bpm || '---'}</td>
@@ -152,8 +302,54 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tr>
                 `).join('') : '<tr><td colspan="4" class="text-center">No tracks found</td></tr>';
 
-                // Add click handlers
+                // Add drag handlers
                 tracksList.querySelectorAll('tr[data-track-id]').forEach(row => {
+                    row.ondragstart = (e) => {
+                        e.dataTransfer.setData('text/plain', row.dataset.trackId);
+                    };
+
+                    row.onclick = () => {
+                        const trackId = row.dataset.trackId;
+                        const activeDeck = document.querySelector('.library-controls button.active');
+                        if (activeDeck) {
+                            const deckId = activeDeck.dataset.deck.toLowerCase();
+                            decks[deckId]?.loadTrack(trackId);
+                        }
+                    };
+                });
+            }
+        } catch (error) {
+            console.error('Error loading playlist tracks:', error);
+        }
+    }
+
+    // Load all tracks
+    async function loadTracks() {
+        try {
+            const response = await fetch('/api/tracks');
+            const tracks = await response.json();
+            const tracksList = document.getElementById('tracksList');
+
+            if (tracksList) {
+                tracksList.innerHTML = tracks.length ? tracks.map(track => `
+                    <tr class="track-row" draggable="true" data-track-id="${track.id}">
+                        <td>${track.title || 'Unknown Title'}</td>
+                        <td>${track.artist || 'Unknown Artist'}</td>
+                        <td>${track.bpm || '---'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="analyzeBPM(${track.id})">
+                                <span class="material-icons">speed</span>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('') : '<tr><td colspan="4" class="text-center">No tracks found</td></tr>';
+
+                // Add drag handlers
+                tracksList.querySelectorAll('tr[data-track-id]').forEach(row => {
+                    row.ondragstart = (e) => {
+                        e.dataTransfer.setData('text/plain', row.dataset.trackId);
+                    };
+
                     row.onclick = () => {
                         const trackId = row.dataset.trackId;
                         const activeDeck = document.querySelector('.library-controls button.active');
@@ -169,13 +365,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initial tracks load
+    // Initial loads
+    loadPlaylists();
     loadTracks();
+
+    // Deck layout handlers
+    const layout2DecksBtn = document.getElementById('layout2Decks');
+    const layout4DecksBtn = document.getElementById('layout4Decks');
+    const decksContainer = document.querySelector('.row.g-3');
+
+    if (layout2DecksBtn && layout4DecksBtn && decksContainer) {
+        // Hide decks C and D initially
+        document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
+            deck.style.display = 'none');
+
+        layout2DecksBtn.onclick = () => {
+            decksCount = 2;
+            document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
+                deck.style.display = 'none');
+            document.querySelectorAll('#deck-a, #deck-b').forEach(deck =>
+                deck.parentElement.className = 'col-md-6');
+            layout2DecksBtn.classList.add('active');
+            layout4DecksBtn.classList.remove('active');
+        };
+
+        layout4DecksBtn.onclick = () => {
+            decksCount = 4;
+            document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
+                deck.style.display = 'block');
+            document.querySelectorAll('.deck').forEach(deck =>
+                deck.parentElement.className = 'col-md-3');
+            layout4DecksBtn.classList.add('active');
+            layout2DecksBtn.classList.remove('active');
+        };
+    }
+
+    // Playlist toggle
+    const togglePlaylistsBtn = document.getElementById('togglePlaylists');
+    const playlistsPanel = document.querySelector('.playlists-panel');
+
+    if (togglePlaylistsBtn && playlistsPanel) {
+        togglePlaylistsBtn.onclick = () => {
+            playlistsPanel.classList.toggle('active');
+            togglePlaylistsBtn.classList.toggle('active');
+        };
+    }
 
     // Deck selection handlers
     document.querySelectorAll('.library-controls button').forEach(btn => {
         btn.onclick = () => {
-            document.querySelectorAll('.library-controls button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.library-controls button').forEach(b =>
+                b.classList.remove('active'));
             btn.classList.add('active');
         };
     });
@@ -229,7 +469,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 console.log('Upload successful:', data);
-                loadTracks(); // Refresh tracks list instead of page reload
+                if (currentPlaylist) {
+                    loadPlaylistTracks(currentPlaylist);
+                } else {
+                    loadTracks();
+                }
             })
             .catch(error => console.error('Upload error:', error));
         });
@@ -238,17 +482,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // Scanner handler
     window.scanLibrary = async function() {
         try {
-            // Show loading state
             document.body.style.cursor = 'wait';
             const response = await fetch('/api/scan-music');
             const data = await response.json();
             console.log('Scan started:', data);
 
-            // Refresh tracks list a few times to catch newly scanned files
             let attempts = 0;
             const maxAttempts = 5;
             const checkInterval = setInterval(async () => {
-                await loadTracks();
+                if (currentPlaylist) {
+                    await loadPlaylistTracks(currentPlaylist);
+                } else {
+                    await loadTracks();
+                }
                 attempts++;
                 if (attempts >= maxAttempts) {
                     clearInterval(checkInterval);
@@ -277,7 +523,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (data.bpm) {
                 console.log('BPM detected:', data.bpm);
-                loadTracks(); // Refresh tracks
+                if (currentPlaylist) {
+                    loadPlaylistTracks(currentPlaylist);
+                } else {
+                    loadTracks();
+                }
             } else {
                 console.error('BPM detection failed');
                 if (btn) {
