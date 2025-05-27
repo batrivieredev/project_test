@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Audio Context
+    // Contexte audio pour la gestion du son
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     let analyserNodes = new Map();
 
-    // State
-    let currentPlaylist = null;
-    let decksCount = 2;
+    // Variables d'état
+    let currentPlaylist = null; // Playlist actuellement sélectionnée
+    let decksCount = 2; // Nombre de decks affichés (2 ou 4)
 
-    // Deck initialization
+    // Classe Deck : gère un platine virtuel avec ses contrôles et sa visualisation
     class Deck {
         constructor(id) {
             this.id = id;
@@ -19,12 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
             this.analyserNode.connect(audioContext.destination);
             this.source = null;
 
-            // Analyser configuration
+            // Configuration de l'analyseur audio pour la visualisation
             this.analyserNode.fftSize = 2048;
             this.bufferLength = this.analyserNode.frequencyBinCount;
             this.dataArray = new Uint8Array(this.bufferLength);
 
-            // DOM elements
+            // Éléments DOM du deck
             this.element = document.getElementById(`deck-${id}`);
             if (!this.element) return;
 
@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.setupDragAndDrop();
         }
 
+        // Configuration des contrôles (boutons et sliders)
         setupControls() {
             const controls = this.element.querySelector('.controls');
             const [playBtn, pauseBtn, cueBtn, loopBtn] = controls.querySelectorAll('button');
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Configuration des événements audio
         setupAudio() {
             this.audio.onended = () => {
                 this.isPlaying = false;
@@ -72,6 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
 
+        // Création et configuration de la visualisation waveform
         setupWaveform() {
             const waveformContainer = document.createElement('div');
             waveformContainer.className = 'waveform-container';
@@ -103,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.drawWaveform();
         }
 
+        // Configuration du drag & drop pour charger des morceaux
         setupDragAndDrop() {
             this.element.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -123,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        // Dessine la visualisation des fréquences en temps réel
         drawWaveform() {
             requestAnimationFrame(() => this.drawWaveform());
 
@@ -162,6 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Met à jour la barre de progression de lecture
         updateProgress() {
             if (this.audio.duration) {
                 const progress = (this.audio.currentTime / this.audio.duration) * 100;
@@ -169,6 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Charge un morceau depuis l'API et configure l'audio
         async loadTrack(trackId) {
             try {
                 const response = await fetch(`/api/tracks/${trackId}/file`);
@@ -198,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Met à jour les informations affichées du morceau
         updateTrackInfo(track) {
             const titleEl = this.element.querySelector('.track-name');
             const bpmEl = this.element.querySelector('.bpm-display');
@@ -206,12 +214,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (bpmEl) bpmEl.textContent = track.bpm ? `${track.bpm} BPM` : '--- BPM';
         }
 
+        // Met à jour l'état des boutons de contrôle
         updateButtons() {
             const [playBtn, pauseBtn] = this.element.querySelectorAll('.controls button');
             playBtn.disabled = this.isPlaying;
             pauseBtn.disabled = !this.isPlaying;
         }
 
+        // Démarre la lecture du morceau
         async play() {
             if (!this.audio.src) return;
             try {
@@ -240,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize decks
+    // Initialisation des 4 platines virtuelles
     const decks = {
         a: new Deck('a'),
         b: new Deck('b'),
@@ -248,7 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
         d: new Deck('d')
     };
 
-    // Initialize playlist view
+    // Chargement et affichage des playlists
     async function loadPlaylists() {
         try {
             const response = await fetch('/api/playlists');
@@ -281,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Load tracks for a specific playlist
+    // Charge les morceaux d'une playlist spécifique
     async function loadPlaylistTracks(playlistId) {
         try {
             const response = await fetch(`/api/playlists/${playlistId}/tracks`);
@@ -323,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Load all tracks
+    // Charge tous les morceaux de la bibliothèque
     async function loadTracks() {
         try {
             const response = await fetch('/api/tracks');
@@ -365,42 +375,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initial loads
+    // Chargement initial des playlists et morceaux
     loadPlaylists();
     loadTracks();
 
-    // Deck layout handlers
+    // Gestion du switch entre 2 et 4 decks
     const layout2DecksBtn = document.getElementById('layout2Decks');
     const layout4DecksBtn = document.getElementById('layout4Decks');
     const decksContainer = document.querySelector('.row.g-3');
 
     if (layout2DecksBtn && layout4DecksBtn && decksContainer) {
-        // Hide decks C and D initially
+        // Cache les decks C et D au démarrage
         document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
             deck.style.display = 'none');
 
         layout2DecksBtn.onclick = () => {
             decksCount = 2;
+            const decksContainer = document.querySelector('.row.g-3');
+            decksContainer.classList.remove('four-decks');
+            decksContainer.classList.add('two-decks');
             document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
                 deck.style.display = 'none');
-            document.querySelectorAll('#deck-a, #deck-b').forEach(deck =>
-                deck.parentElement.className = 'col-md-6');
             layout2DecksBtn.classList.add('active');
             layout4DecksBtn.classList.remove('active');
         };
 
         layout4DecksBtn.onclick = () => {
             decksCount = 4;
+            const decksContainer = document.querySelector('.row.g-3');
+            decksContainer.classList.remove('two-decks');
+            decksContainer.classList.add('four-decks');
             document.querySelectorAll('#deck-c, #deck-d').forEach(deck =>
                 deck.style.display = 'block');
-            document.querySelectorAll('.deck').forEach(deck =>
-                deck.parentElement.className = 'col-md-3');
             layout4DecksBtn.classList.add('active');
             layout2DecksBtn.classList.remove('active');
         };
     }
 
-    // Playlist toggle
+    // Gestion du toggle du panneau des playlists
     const togglePlaylistsBtn = document.getElementById('togglePlaylists');
     const playlistsPanel = document.querySelector('.playlists-panel');
 
@@ -411,7 +423,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // Deck selection handlers
+    // Gestion de la sélection du deck actif
     document.querySelectorAll('.library-controls button').forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll('.library-controls button').forEach(b =>
@@ -420,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     });
 
-    // Crossfader
+    // Configuration du crossfader entre les decks
     const crossfader = document.querySelector('.crossfader');
     if (crossfader) {
         crossfader.oninput = (e) => {
@@ -433,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // File upload
+    // Gestion de l'upload de fichiers audio
     const uploadZone = document.getElementById('uploadZone');
     const fileInput = document.getElementById('fileInput');
 
@@ -479,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Scanner handler
+    // Scanner la bibliothèque musicale
     window.scanLibrary = async function() {
         try {
             document.body.style.cursor = 'wait';
@@ -507,7 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // BPM Analysis
+    // Analyse du BPM des morceaux
     window.analyzeBPM = async function(trackId) {
         try {
             const btn = document.querySelector(`tr[data-track-id="${trackId}"] button`);

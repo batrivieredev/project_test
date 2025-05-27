@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="container-fluid vh-100 d-flex flex-column bg-dark text-light p-0">
-    <!-- Navigation Bar -->
+    <!-- Barre de navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary px-3">
         <div class="d-flex align-items-center">
             <div class="btn-group me-3" role="group">
@@ -37,17 +37,17 @@
 
     <!-- Main Content -->
     <div class="flex-grow-1 d-flex">
-        <!-- Playlists Panel -->
+        <!-- Panneau des playlists -->
         <div class="playlists-panel p-3" style="width: 250px;">
             <h5 class="mb-3">Playlists</h5>
-            <!-- Playlists will be loaded dynamically -->
+            <!-- Les playlists seront chargées dynamiquement -->
         </div>
 
-        <!-- Main Content -->
+        <!-- Contenu principal -->
         <div class="flex-grow-1 d-flex flex-column">
-            <!-- Decks Section -->
+            <!-- Section des platines -->
             <div class="container-fluid p-3">
-            <div class="row g-3">
+            <div class="row g-3 two-decks">
                 <!-- Deck A -->
                 <div class="col-md-6">
                     <div class="card bg-dark border-primary" id="deck-a">
@@ -174,7 +174,7 @@
             </div>
         </div>
 
-        <!-- Mixer Section -->
+        <!-- Section de mixage (crossfader) -->
         <div class="bg-dark border-top border-bottom border-secondary p-3">
             <div class="row justify-content-center">
                 <div class="col-md-6">
@@ -183,7 +183,7 @@
             </div>
         </div>
 
-        <!-- Library Section -->
+        <!-- Section bibliothèque musicale -->
         <div class="flex-grow-1 bg-dark">
             <div class="container-fluid p-3">
                 <div class="card bg-dark border-secondary">
@@ -219,7 +219,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tracksList">
-                                    <!-- Tracks will be loaded dynamically -->
+                                    <!-- Les morceaux seront chargés dynamiquement -->
                                 </tbody>
                             </table>
                         </div>

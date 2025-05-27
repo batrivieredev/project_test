@@ -1,4 +1,4 @@
-/* Custom scrollbar for dark theme */
+/* Style personnalisé de la scrollbar pour le thème sombre */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -17,7 +17,7 @@
     background: #888;
 }
 
-/* Upload zone styles */
+/* Styles de la zone de dépôt de fichiers */
 .upload-zone {
     border: 2px dashed #666;
     border-radius: 4px;
@@ -34,7 +34,7 @@
     background-color: rgba(13, 110, 253, 0.2);
 }
 
-/* Deck controls customization */
+/* Personnalisation des contrôles des platines */
 #deck-a .btn-outline-primary:hover {
     background-color: rgba(13, 110, 253, 0.2);
 }
@@ -43,7 +43,7 @@
     background-color: rgba(220, 53, 69, 0.2);
 }
 
-/* Range input customization */
+/* Personnalisation des curseurs (volume, pitch, etc.) */
 .form-range::-webkit-slider-thumb {
     transition: transform 0.1s ease;
 }
@@ -52,7 +52,7 @@
     transform: scale(1.2);
 }
 
-/* Table customization */
+/* Personnalisation du tableau de morceaux */
 .table-dark {
     --bs-table-bg: transparent;
 }
@@ -61,7 +61,7 @@
     --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
 }
 
-/* Track info truncation */
+/* Troncature des informations de morceaux trop longues */
 .track-name {
     max-width: 200px;
     white-space: nowrap;
@@ -69,19 +69,19 @@
     text-overflow: ellipsis;
 }
 
-/* Material icons alignment */
+/* Alignement des icônes Material Design */
 .material-icons {
     vertical-align: middle;
     font-size: 20px;
 }
 
-/* Button icons */
+/* Styles des icônes dans les boutons */
 .btn .material-icons {
     margin: -4px 0;
     transition: transform 0.2s ease;
 }
 
-/* Loading animation */
+/* Animation de chargement (rotation) */
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -91,7 +91,7 @@
     animation: spin 1s linear infinite;
 }
 
-/* BPM analysis button states */
+/* États du bouton d'analyse BPM */
 button:disabled .material-icons {
     opacity: 0.5;
 }
@@ -154,9 +154,23 @@ button .material-icons.error {
     background-color: rgba(13, 110, 253, 0.2);
 }
 
-/* 4 Deck Layout */
-.decks-container.four-decks .col-md-6 {
-    width: 50%;
+/* Disposition en grille pour 4 platines (2x2) */
+.row.four-decks {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 1rem;
+}
+
+.row.four-decks .col-md-6 {
+    width: 100%;
+    max-width: 100%;
+    flex: none;
+}
+
+/* Disposition flex pour 2 platines (1x2) */
+.row.two-decks {
+    display: flex;
+    flex-wrap: wrap;
 }
 
 /* Track drag & drop */
