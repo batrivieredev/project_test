@@ -1,41 +1,6 @@
-fait un mode nuit (couleures actuelles) et un mode jour (plutot couleur blanche)
-et fait en sorte que quand je clique sur les boutons mixer ça redirige vers une page loading et après 5 sec ça aille sur la page mixer.html
-je te met le code pour la page loading pour te donner une idée :
-<script>
-  const percentageText = document.getElementById('percentage');
-  const progressFill = document.getElementById('progress-fill');
-  const progressBlocks = document.getElementById('progress-blocks');
-
-  const blocksCount = 20;
-
-  for (let i = 0; i < blocksCount; i++) {
-    const block = document.createElement('span');
-    progressBlocks.appendChild(block);
-  }
-
-  let percent = 0;
-
-  const interval = setInterval(() => {
-    if (percent > 100) {
-      clearInterval(interval);
-      // Redirection après 5 secondes
-      window.location.href = 'home.html'; // Remplace par ton URL de destination
-      return;
-    }
-
-    percentageText.textContent = `${percent}%`;
-    progressFill.style.width = `${percent}%`;
-
-    const blocks = progressBlocks.querySelectorAll('span');
-    const filledCount = Math.floor((percent / 100) * blocksCount);
-    blocks.forEach((block, i) => {
-      block.classList.toggle('filled', i < filledCount);
-    });
-
-    percent++;
-  }, 50); // 50ms * 100 = 5000ms = 5s
-</script>
-
-fait des menus déroulants pour les playlists et les musiques qui sont dans les playlists
-quand j'ai une musique qui est en lecture, je ne peux pas en mettre une autre, je veux que l'ont puisse changer de musique et que sa s'actualise en tant réél
+mode jour et mode nuit à faire sur tout le site, ce n'est toujours pas bon
+je veux que le css de la page administration, la page convertisseur et de la page de connexion soit dans le meme style que celui de la page mixer
+le search track ne fonctionne toujours pas, il doit chercher une musique, et je veux un bouton dans la bliblioteque de palylist ou quand je clique dessus il y a tous les mp3 de partout regroupés dedans pour que je puisse faire une recherche sur toutes les musiques
+sur la page choose mode, je veux que tu copie le MODE DJ et que au dessus de administration tu mette la meme chose mais mode admin et que dessus convertisseur audio tu mette mode convertisseur ou un truc dans ce genre
+il y a toujours un beug quand je veux mettre une musique sur une autre qui est en cours de lecture, je veux que ça la remplace directement et que ça commence la nouvelle dés le début sans problemes
 

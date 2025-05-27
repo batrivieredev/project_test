@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             this.gainNode.connect(this.analyserNode);
             this.analyserNode.connect(audioContext.destination);
             this.source = null;
+            this.currentTrackId = null;
 
             // Configuration de l'analyseur audio pour la visualisation
             this.analyserNode.fftSize = 2048;
@@ -177,6 +178,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Charge un morceau depuis l'API et configure l'audio
         async loadTrack(trackId) {
+            const isFromMixerPage = window.location.pathname === '/choose' ||
+                                  (window.location.pathname === '/mixer' && document.querySelector('.navbar button:last-child').contains(event.target));
+
+            if (isFromMixerPage) {
+                window.location.href = '/loading';
+                return;
+            }
+            // Stop other decks if they're playing this track
+            for (let deckId in decks) {
+                if (decks[deckId].currentTrackId === trackId && decks[deckId].isPlaying) {
+                    decks[deckId].pause();
+                }
+            }
+
             try {
                 const response = await fetch(`/api/tracks/${trackId}/file`);
                 const blob = await response.blob();
@@ -188,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 this.audio.src = url;
+                this.currentTrackId = trackId;
 
                 // Reset audio nodes
                 if (this.source) {
@@ -294,35 +310,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Conserver le bouton "Bibliothèque complète"
                 const allTracksBtn = playlistsList.firstChild;
 
-                // Ajouter les playlists
-                const playlistsHtml = playlists.map(playlist => `
-                    <div class="playlist-item" data-playlist-id="${playlist.id}">
-                        <span class="material-icons">playlist_play</span>
-                        ${playlist.name}
-                    </div>
-                `).join('');
+                // Créer un élément select pour les playlists
+                const select = document.createElement('select');
+                select.className = 'form-select mt-3';
+                select.innerHTML = `
+                    <option value="">Sélectionner une playlist</option>
+                    ${playlists.map(playlist => `
+                        <option value="${playlist.id}">${playlist.name}</option>
+                    `).join('')}
+                `;
+
+                // Gestionnaire de changement pour le select
+                select.onchange = (e) => {
+                    const playlistId = e.target.value;
+                    if (playlistId) {
+                        loadPlaylistTracks(playlistId);
+                    } else {
+                        loadTracks();
+                    }
+                };
 
                 // Mettre à jour le contenu en préservant le bouton
                 if (allTracksBtn) {
                     playlistsList.innerHTML = '';
                     playlistsList.appendChild(allTracksBtn);
-                    playlistsList.insertAdjacentHTML('beforeend', playlistsHtml);
+                    playlistsList.appendChild(select);
                 } else {
-                    playlistsList.innerHTML = playlistsHtml;
+                    playlistsList.innerHTML = '';
+                    playlistsList.appendChild(select);
                 }
-
-                // Add click handlers
-                playlistsList.querySelectorAll('.playlist-item').forEach(item => {
-                    item.onclick = () => {
-                        const playlistId = item.dataset.playlistId;
-                        loadPlaylistTracks(playlistId);
-
-                        // Update active state
-                        playlistsList.querySelectorAll('.playlist-item').forEach(p =>
-                            p.classList.remove('active'));
-                        item.classList.add('active');
-                    };
-                });
             }
         } catch (error) {
             console.error('Error loading playlists:', error);
@@ -339,8 +355,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const tracksList = document.getElementById('tracksList');
 
             if (tracksList) {
-                tracksList.innerHTML = tracks.length ? tracks.map(track => `
-                    <tr class="track-row" draggable="true" data-track-id="${track.id}">
+                // Clear the tracks list
+                tracksList.innerHTML = '';
+
+                // Filter tracks based on search input
+                const searchInput = document.getElementById('searchInput');
+                const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+                const filteredTracks = tracks.filter(track =>
+                    (track.title || '').toLowerCase().includes(searchTerm) ||
+                    (track.artist || '').toLowerCase().includes(searchTerm)
+                );
+
+                // Add filtered tracks to the table
+                tracks.forEach(track => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'track-row';
+                    tr.draggable = true;
+                    tr.dataset.trackId = track.id;
+                    tr.innerHTML = `
                         <td>${track.title || 'Titre inconnu'}</td>
                         <td>${track.artist || 'Artiste inconnu'}</td>
                         <td>${track.bpm ? `${track.bpm} BPM` : '---'}</td>
@@ -349,8 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="material-icons">speed</span>
                             </button>
                         </td>
-                    </tr>
-                `).join('') : '<tr><td colspan="4" class="text-center">Aucun morceau trouvé</td></tr>';
+                    `;
+                    tracksList.appendChild(tr);
+                });
 
                 // Ajouter les gestionnaires de drag & drop
                 tracksList.querySelectorAll('tr[data-track-id]').forEach(row => {
@@ -381,8 +414,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const tracksList = document.getElementById('tracksList');
 
             if (tracksList) {
-                tracksList.innerHTML = tracks.length ? tracks.map(track => `
-                    <tr class="track-row" draggable="true" data-track-id="${track.id}">
+                // Clear the tracks list
+                tracksList.innerHTML = '';
+
+                // Filter tracks based on search input
+                const searchInput = document.getElementById('searchInput');
+                const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+                const filteredTracks = tracks.filter(track =>
+                    (track.title || '').toLowerCase().includes(searchTerm) ||
+                    (track.artist || '').toLowerCase().includes(searchTerm)
+                );
+
+                // Add filtered tracks to the table
+                tracks.forEach(track => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'track-row';
+                    tr.draggable = true;
+                    tr.dataset.trackId = track.id;
+                    tr.innerHTML = `
                         <td>${track.title || 'Titre inconnu'}</td>
                         <td>${track.artist || 'Artiste inconnu'}</td>
                         <td>${track.bpm ? `${track.bpm} BPM` : '---'}</td>
@@ -391,8 +440,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="material-icons">speed</span>
                             </button>
                         </td>
-                    </tr>
-                `).join('') : '<tr><td colspan="4" class="text-center">No tracks found</td></tr>';
+                    `;
+                    tracksList.appendChild(tr);
+                });
 
                 // Add drag handlers
                 tracksList.querySelectorAll('tr[data-track-id]').forEach(row => {
@@ -415,7 +465,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialisation de l'interface
+    // Ajouter un gestionnaire d'événements pour rediriger depuis la page de chargement
+    if (window.location.pathname === '/loading') {
+        setTimeout(() => {
+            window.location.href = '/mixer';
+        }, 5000);
+    }
+
+    // Initialize search functionality
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            if (currentPlaylist) {
+                loadPlaylistTracks(currentPlaylist);
+            } else {
+                loadTracks();
+            }
+        });
+    }
+
+    // Initialize interface
     initializePlaylists();
 
     // Fonction pour attacher les gestionnaires d'événements aux boutons de sélection des decks

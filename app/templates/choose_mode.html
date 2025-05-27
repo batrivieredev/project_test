@@ -42,10 +42,12 @@
                 {% endif %}
 
                 {% if current_user.can_access_mixer %}
-                <a href="{{ url_for('main.mixer') }}" class="btn btn-success btn-lg btn-glow mode-button dj-button">
-                    <span class="material-icons align-middle me-2">playlist_play</span>
-                    DJ Mixer
-                </a>
+                <form action="{{ url_for('main.loading') }}" method="get" style="margin: 0;">
+                    <button type="submit" class="btn btn-success btn-lg btn-glow mode-button dj-button w-100">
+                        <span class="material-icons align-middle me-2">playlist_play</span>
+                        DJ Mixer
+                    </button>
+                </form>
                 {% endif %}
 
                 {% if not current_user.is_admin and not current_user.can_access_mixer and not current_user.can_access_converter %}

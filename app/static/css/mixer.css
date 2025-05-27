@@ -24,7 +24,7 @@
     transition: all 0.3s ease;
 }
 
-.upload-zone:hover {    
+.upload-zone:hover {
     border-color: #0d6efd;
     background-color: rgba(13, 110, 253, 0.1);
 }
@@ -59,6 +59,25 @@
 
 .table-dark tbody tr:hover {
     --bs-table-hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+.table-responsive {
+    background: #242424;
+    border-radius: 4px;
+    border: 1px solid #666;
+}
+
+#searchInput {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #666;
+    color: #fff;
+}
+
+#searchInput:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
 /* Troncature des informations de morceaux trop longues */
@@ -134,10 +153,17 @@ button .material-icons.error {
     display: none;
     background: #242424;
     border-right: 1px solid #666;
+    height: calc(100vh - 56px); /* Navbar height */
+    overflow-y: auto;
 }
 
 .playlists-panel.active {
     display: block;
+}
+
+.playlists-content {
+    height: calc(100% - 40px); /* Account for header */
+    overflow-y: auto;
 }
 
 .playlist-item {
@@ -185,6 +211,20 @@ button .material-icons.error {
 .deck.drag-over {
     border-color: #0d6efd !important;
     background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Theme toggle button */
+#themeToggle {
+    position: relative;
+    overflow: hidden;
+}
+
+#themeToggle .material-icons {
+    transition: transform 0.3s ease;
+}
+
+#themeToggle:hover .material-icons {
+    transform: rotate(180deg);
 }
 
 /* Crossfader styling */

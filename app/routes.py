@@ -444,6 +444,13 @@ def choose_mode():
     """Page de choix entre administration et mixer"""
     return render_template('choose_mode.html')
 
+@main.route('/loading')
+@login_required
+@mixer_access_required
+def loading():
+    """Page de chargement avant le mixer"""
+    return render_template('loading.html')
+
 @main.route('/mixer')
 @login_required
 @mixer_access_required

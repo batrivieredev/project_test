@@ -28,9 +28,11 @@
                 <span class="material-icons">transform</span>
             </a>
             {% endif %}
-            <a href="{{ url_for('main.choose_mode') }}" class="btn btn-outline-secondary me-2">
-                <span class="material-icons">home</span>
-            </a>
+            <form action="{{ url_for('main.loading') }}" method="get" class="d-inline me-2">
+                <button type="submit" class="btn btn-outline-secondary">
+                    <span class="material-icons">home</span>
+                </button>
+            </form>
             </a>
         </div>
     </nav>
@@ -40,7 +42,9 @@
         <!-- Panneau des playlists -->
         <div class="playlists-panel p-3" style="width: 250px;">
             <h5 class="mb-3">Playlists</h5>
-            <!-- Les playlists seront chargées dynamiquement -->
+            <div class="playlists-content">
+                <!-- Les playlists seront chargées dynamiquement -->
+            </div>
         </div>
 
         <!-- Contenu principal -->
@@ -208,7 +212,7 @@
                             <p class="text-muted mb-0">Drop audio files here or click to upload</p>
                             <input type="file" id="fileInput" multiple accept=".mp3,.wav,.ogg,.m4a" style="display: none;">
                         </div>
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-dark table-hover mb-0">
                                 <thead>
                                     <tr>
