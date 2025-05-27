@@ -1,214 +1,41 @@
-le bouton 2deck 4 decks ne fonctionne pas
-j'ai mes musiques qui sont affichés mais pas par palylists, alors que je veux que ce soit mes playlists et quand je clique dessus la j'ai mes musiques, je veux pouvoir cliquer sur une musique pour la glisser dans les decks, je veux qu'il y ai des courbes de couleurs suivant les basses par decks et par musique avec un suivi de lecture sur ces coourbes qui grise quand la partie de la musique est passée, et aussi quand je clique sur n'importe quel endroit de la musique que cela se mette exactement ou j'ai cliqué sans modifier le css qui est parfait 
+fait un mode nuit (couleures actuelles) et un mode jour (plutot couleur blanche)
+et fait en sorte que quand je clique sur les boutons mixer ça redirige vers une page loading et après 5 sec ça aille sur la page mixer.html
+je te met le code pour la page loading pour te donner une idée :
+<script>
+  const percentageText = document.getElementById('percentage');
+  const progressFill = document.getElementById('progress-fill');
+  const progressBlocks = document.getElementById('progress-blocks');
 
+  const blocksCount = 20;
 
-127.0.0.1 - - [26/May/2025 23:59:03] "GET /choose HTTP/1.1" 200 -
-127.0.0.1 - - [26/May/2025 23:59:03] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [26/May/2025 23:59:22] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [26/May/2025 23:59:22] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [26/May/2025 23:59:22] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [26/May/2025 23:59:22] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [26/May/2025 23:59:22] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [26/May/2025 23:59:28] "GET /api/tracks/1/file HTTP/1.1" 304 -
-127.0.0.1 - - [26/May/2025 23:59:29] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [27/May/2025 00:01:34] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:01:34] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:01:34] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:01:34] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:01:34] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:01:36] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:01:36] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:01:36] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:01:36] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:01:36] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:48] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:49] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:49] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:49] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:49] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:54] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:54] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:54] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:54] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:54] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:55] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:55] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:55] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:55] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:55] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:56] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:56] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:56] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:56] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:56] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:57] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:58] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:58] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:58] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:58] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:58] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:59] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:04:59] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:59] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:59] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:04:59] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:00] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:01] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:05:11] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:05:11] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:11] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:11] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:05:11] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:08:15] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:08:15] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:08:15] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:08:15] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:08:15] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:13:46] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:13:46] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:13:46] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:13:46] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:13:46] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:13:53] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:13:53] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:13:53] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:13:53] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:13:53] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:14:59] "GET /logout HTTP/1.1" 302 -
-127.0.0.1 - - [27/May/2025 00:14:59] "GET /login HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:14:59] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:15:03] "POST /login HTTP/1.1" 302 -
-127.0.0.1 - - [27/May/2025 00:15:03] "GET /choose HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:15:03] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:15:06] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:15:06] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:15:06] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:15:06] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:15:06] "GET /api/tracks HTTP/1.1" 200 -
+  for (let i = 0; i < blocksCount; i++) {
+    const block = document.createElement('span');
+    progressBlocks.appendChild(block);
+  }
 
-🔄 Lancement du scan de la bibliothèque...
-127.0.0.1 - - [27/May/2025 00:15:19] "GET /api/scan-music HTTP/1.1" 200 -
+  let percent = 0;
 
-🎵 Starting music library scan...
-Exception in thread Thread-733:
-Traceback (most recent call last):
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/threading.py", line 973, in _bootstrap_inner
-    self.run()
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/threading.py", line 910, in run
-    self._target(*self._args, **self._kwargs)
-  File "/Users/batriviere/project_test/app/routes.py", line 76, in decorated_function
-    return f(*args, **kwargs)
-  File "/Users/batriviere/project_test/app/routes.py", line 91, in scan_music_folders
-    upload_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(current_user.id))
-AttributeError: 'NoneType' object has no attribute 'id'
-127.0.0.1 - - [27/May/2025 00:15:21] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:24:07] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:24:07] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:24:07] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:24:07] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:24:07] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:32] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:32] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:32] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:32] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:39] "GET /converter HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:39] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:41] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:41] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:41] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:41] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:43] "GET /choose HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:43] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:46] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:31:46] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:46] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:31:46] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:36:39] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:36:39] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:36:39] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:36:39] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:36:41] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:36:41] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:36:41] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:36:41] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:40:32] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:40:32] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:40:32] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:40:32] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:43:58] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:43:58] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:43:58] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:43:58] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:43:58] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:44:04] "GET /api/tracks/1/file HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:44:04] "GET /api/tracks/1 HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:44:07] "GET /api/tracks/1/file HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:44:07] "GET /api/tracks/1 HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:44:09] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [27/May/2025 00:44:20] "GET /api/tracks/2/file HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:44:24] "GET /api/tracks/2/file HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:44:26] "GET /api/tracks/2/file HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:44:26] "GET /api/tracks/2/file HTTP/1.1" 304 -
+  const interval = setInterval(() => {
+    if (percent > 100) {
+      clearInterval(interval);
+      // Redirection après 5 secondes
+      window.location.href = 'home.html'; // Remplace par ton URL de destination
+      return;
+    }
 
-🎵 Analyzing BPM for: Ayy Macarena - Tyga.mp3
-📑 Checking ID3 tags...
-✨ Found BPM in tags: 97.0
-127.0.0.1 - - [27/May/2025 00:44:28] "GET /api/tracks/2/file HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:44:28] "POST /api/tracks/2/analyze-bpm HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:44:28] "GET /api/tracks HTTP/1.1" 200 -
- * Detected change in '/Users/batriviere/project_test/app/routes.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-425-853
+    percentageText.textContent = `${percent}%`;
+    progressFill.style.width = `${percent}%`;
 
-🔄 Lancement du scan de la bibliothèque...
-Exception in thread Thread-3:
-Traceback (most recent call last):
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/threading.py", line 973, in _bootstrap_inner
-127.0.0.1 - - [27/May/2025 00:44:51] "GET /api/scan-music HTTP/1.1" 200 -
-    self.run()
-  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/threading.py", line 910, in run
-    self._target(*self._args, **self._kwargs)
-  File "/Users/batriviere/project_test/app/routes.py", line 827, in scan_with_user
-    with current_app.app_context():
-  File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/werkzeug/local.py", line 311, in __get__
-    obj = instance._get_current_object()
-  File "/Users/batriviere/Library/Python/3.9/lib/python/site-packages/werkzeug/local.py", line 508, in _get_current_object
-    raise RuntimeError(unbound_message) from None
-RuntimeError: Working outside of application context.
+    const blocks = progressBlocks.querySelectorAll('span');
+    const filledCount = Math.floor((percent / 100) * blocksCount);
+    blocks.forEach((block, i) => {
+      block.classList.toggle('filled', i < filledCount);
+    });
 
-This typically means that you attempted to use functionality that needed
-the current application. To solve this, set up an application context
-with app.app_context(). See the documentation for more information.
-127.0.0.1 - - [27/May/2025 00:44:53] "GET /api/tracks HTTP/1.1" 200 -
- * Detected change in '/Users/batriviere/project_test/app/routes.py', reloading
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 145-425-853
-127.0.0.1 - - [27/May/2025 00:45:06] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:45:06] "GET /static/css/mixer.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:45:06] "GET /static/js/mixer.js HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:45:06] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:45:06] "GET /api/tracks HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:46:59] "GET /mixer HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:46:59] "GET /static/css/style.css HTTP/1.1" 304 -
-127.0.0.1 - - [27/May/2025 00:46:59] "GET /static/css/mixer.css HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:46:59] "GET /static/js/mixer.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/May/2025 00:47:00] "GET /api/tracks HTTP/1.1" 200 -
+    percent++;
+  }, 50); // 50ms * 100 = 5000ms = 5s
+</script>
+
+fait des menus déroulants pour les playlists et les musiques qui sont dans les playlists
+quand j'ai une musique qui est en lecture, je ne peux pas en mettre une autre, je veux que l'ont puisse changer de musique et que sa s'actualise en tant réél
+
