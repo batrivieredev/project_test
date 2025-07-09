@@ -15,6 +15,13 @@
                         </h3>
                     </div>
                     <div class="card-body px-4 py-4">
+                        <div class="text-center mb-4">
+                            <a href="{{ url_for('main.index') }}" class="btn btn-outline-light btn-glow-secondary landing-btn">
+                                <span class="material-icons">home</span>
+                                <span>Découvrir DJ Pro Studio</span>
+                            </a>
+                        </div>
+
                         {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
                         {% for category, message in messages %}
@@ -176,6 +183,22 @@
     background: linear-gradient(45deg, #ffffff, #cccccc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+.landing-btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.landing-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
 
 .floating-input {

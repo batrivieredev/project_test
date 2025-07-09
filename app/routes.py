@@ -134,11 +134,13 @@ def scan_music_folders(user=None, parent_folder=None, parent_playlist=None, curr
 
 # Routes principales
 @main.route('/')
+@main.route('/landing')
+@main.route('/landingpage')
 def index():
-    """Page d'accueil - Redirige vers la page de choix ou la page de connexion"""
+    """Page d'accueil - Redirige vers la landing page si non connecté"""
     if current_user.is_authenticated:
         return redirect(url_for('main.choose_mode'))
-    return redirect(url_for('auth.login'))
+    return render_template('landing_page.html')
 
 @main.route('/choose')
 @login_required
