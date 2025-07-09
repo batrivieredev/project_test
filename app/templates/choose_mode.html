@@ -3,75 +3,78 @@
 {% block title %}Choisir un mode{% endblock %}
 
 {% block content %}
-<div class="mode-select-container vh-100">
-    <div class="container py-5">
+<div class="mode-select-container vh-100 d-flex align-items-center">
+    <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
-                <div class="card bg-dark mode-card">
-                    <div class="card-header border-glow">
-                        <h3 class="card-title text-center mb-0 text-gradient">
-                            <span class="material-icons align-middle me-2">headphones</span>
-                            DJ Pro Studio
+                <div class="mode-card">
+                    <div class="card-header">
+                        <h3 class="card-title text-center mb-0">
+                            <span class="material-icons logo-icon">headphones</span>
+                            <span class="logo-text">DJ Pro Studio</span>
                         </h3>
                     </div>
-                    <div class="card-body">
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+                    <div class="card-body px-4 py-4">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} fade-in">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
 
-            <div class="d-grid gap-3">
-                {% if current_user.is_admin %}
-                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary btn-lg btn-glow mode-button">
-                    <span class="material-icons align-middle me-2">admin_panel_settings</span>
-                    Administration
-                </a>
-                {% endif %}
+                        <div class="d-grid gap-4">
+                            {% if current_user.is_admin %}
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-primary mode-button admin-button">
+                                <span class="material-icons">admin_panel_settings</span>
+                                <span>Administration</span>
+                            </a>
+                            {% endif %}
 
-                {% if current_user.is_admin and current_user.can_access_mixer %}
-                <div class="divider">
-                    <div class="divider-line"></div>
-                    <span class="divider-text">MODE DJ</span>
-                    <div class="divider-line"></div>
+                            {% if current_user.is_admin and current_user.can_access_mixer %}
+                            <div class="divider">
+                                <span>MODE DJ</span>
+                            </div>
+                            {% endif %}
+
+                            {% if current_user.can_access_mixer %}
+                            <form action="{{ url_for('main.loading') }}" method="get" class="m-0">
+                                <button type="submit" class="btn mode-button dj-button w-100">
+                                    <span class="material-icons">playlist_play</span>
+                                    <span>DJ Mixer</span>
+                                </button>
+                            </form>
+                            {% endif %}
+
+                            {% if not current_user.is_admin and not current_user.can_access_mixer and not current_user.can_access_converter %}
+                            <div class="alert alert-warning fade-in">
+                                <span class="material-icons">warning</span>
+                                <span>Votre compte n'a pas encore d'accès. Un administrateur doit vous accorder les permissions nécessaires.</span>
+                            </div>
+                            {% endif %}
+
+                            {% if current_user.can_access_converter %}
+                            <div class="divider">
+                                <span>OUTILS</span>
+                            </div>
+
+                            <a href="{{ url_for('main.converter') }}" class="btn mode-button converter-button">
+                                <span class="material-icons">music_note</span>
+                                <span>Convertisseur Audio</span>
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-glow-danger">
+                                <span class="material-icons">logout</span>
+                                <span>Déconnexion</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
-
-                {% if current_user.can_access_mixer %}
-                <form action="{{ url_for('main.loading') }}" method="get" style="margin: 0;">
-                    <button type="submit" class="btn btn-success btn-lg btn-glow mode-button dj-button w-100">
-                        <span class="material-icons align-middle me-2">playlist_play</span>
-                        DJ Mixer
-                    </button>
-                </form>
-                {% endif %}
-
-                {% if not current_user.is_admin and not current_user.can_access_mixer and not current_user.can_access_converter %}
-                <div class="alert alert-warning">
-                    <span class="material-icons align-middle me-2">warning</span>
-                    Votre compte n'a pas encore d'accès. Un administrateur doit vous accorder les permissions nécessaires.
-                </div>
-                {% endif %}
-            </div>
-
-            <hr class="border-secondary my-4">
-
-            {% if current_user.can_access_converter %}
-            <a href="{{ url_for('main.converter') }}" class="btn btn-info btn-lg d-block mb-4 btn-glow mode-button">
-                <span class="material-icons align-middle me-2">music_note</span>
-                Convertisseur Audio
-            </a>
-            {% endif %}
-
-            <div class="text-center">
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-glow-danger">
-                    <span class="material-icons align-middle me-2">logout</span>
-                    Déconnexion
-                </a>
             </div>
         </div>
     </div>
@@ -79,62 +82,63 @@
 
 <style>
 .mode-select-container {
-    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-darker) 100%);
     min-height: 100vh;
 }
 
 .mode-card {
-    background: linear-gradient(170deg, #2a2a2a 0%, #1a1a1a 100%);
-    border: none;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    background: rgba(42, 42, 42, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     transform: translateY(0);
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .mode-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
-.border-glow {
-    border: none;
-    background: linear-gradient(90deg, #2a2a2a, #4a4a4a);
-    position: relative;
+.card-header {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 16px 16px 0 0;
 }
 
-.border-glow::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 10%;
-    right: 10%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-}
-
-.text-gradient {
-    background: linear-gradient(90deg, #fff, #aaa);
+.logo-icon {
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: bold;
-    letter-spacing: 1px;
+    margin-right: 0.5rem;
 }
 
-.btn-lg {
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, #ffffff, #cccccc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.mode-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
     padding: 1.2rem;
     font-size: 1.2rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
+    border-radius: 12px;
     border: none;
-    transition: all 0.3s ease;
-}
-
-.mode-button {
     position: relative;
     overflow: hidden;
-    z-index: 1;
-    margin-bottom: 1rem;
+    transition: all 0.3s ease;
 }
 
 .mode-button::before {
@@ -144,90 +148,126 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: all 0.5s ease;
-    z-index: -1;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s ease;
 }
 
 .mode-button:hover::before {
     left: 100%;
 }
 
-.btn-glow {
-    box-shadow: 0 0 15px rgba(0,123,255,0.4);
+.admin-button {
+    background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
 }
 
-.btn-glow:hover {
-    box-shadow: 0 0 30px rgba(0,123,255,0.6);
+.admin-button:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.4);
+}
+
+.dj-button {
+    background: linear-gradient(45deg, #198754, #20c997);
+    box-shadow: 0 4px 15px rgba(25, 135, 84, 0.3);
+    color: white;
+}
+
+.dj-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 135, 84, 0.4);
+    color: white;
+}
+
+.converter-button {
+    background: linear-gradient(45deg, #0dcaf0, #0d6efd);
+    box-shadow: 0 4px 15px rgba(13, 202, 240, 0.3);
+    color: white;
+}
+
+.converter-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 202, 240, 0.4);
+    color: white;
 }
 
 .btn-glow-danger {
-    box-shadow: 0 0 10px rgba(220,53,69,0.2);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     transition: all 0.3s ease;
 }
 
 .btn-glow-danger:hover {
-    box-shadow: 0 0 20px rgba(220,53,69,0.4);
+    background: rgba(220, 53, 69, 0.2);
+    border-color: rgba(220, 53, 69, 0.3);
     transform: translateY(-2px);
 }
 
-.dj-button {
-    background: linear-gradient(45deg, #28a745, #20c997);
-}
-
-.dj-button:hover {
-    background: linear-gradient(45deg, #20c997, #28a745);
-}
-
-.material-icons {
-    font-size: 24px;
-    vertical-align: text-bottom;
-    margin-right: 8px;
-}
-
-@keyframes glow {
-    0% { box-shadow: 0 0 15px rgba(0,123,255,0.4); }
-    50% { box-shadow: 0 0 25px rgba(0,123,255,0.6); }
-    100% { box-shadow: 0 0 15px rgba(0,123,255,0.4); }
-}
-
-.mode-button {
-    animation: glow 2s infinite;
-}
-
 .divider {
-    display: flex;
-    align-items: center;
-    margin: 1.5rem 0;
-    padding: 0 1rem;
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
 }
 
-.divider-line {
-    flex-grow: 1;
-    height: 2px;
-    background: linear-gradient(90deg,
-        transparent,
-        rgba(255, 255, 255, 0.2) 20%,
-        rgba(255, 255, 255, 0.2) 80%,
-        transparent
-    );
+.divider::before,
+.divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 50px);
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
 }
 
-.divider-text {
+.divider::before {
+    left: 0;
+}
+
+.divider::after {
+    right: 0;
+}
+
+.divider span {
+    background: rgba(42, 42, 42, 0.7);
     padding: 0 1rem;
-    color: #adb5bd;
+    color: rgba(255, 255, 255, 0.5);
     font-size: 0.9rem;
     font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    animation: neonText 2s infinite;
 }
 
-@keyframes neonText {
-    0%, 100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-    50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+.alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    color: rgba(255, 193, 7, 0.9);
+}
+
+.fade-in {
+    animation: fadeInAnimation 0.3s ease-in forwards;
+}
+
+@keyframes fadeInAnimation {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.material-icons {
+    font-size: 24px;
 }
 </style>
 {% endblock %}
