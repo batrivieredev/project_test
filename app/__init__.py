@@ -9,20 +9,9 @@ login_manager = LoginManager()
 def create_app():
     app = Flask(__name__)
 
-    # Configuration
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-replace-in-production')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db?timeout=30'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'uploads')
-    app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB max file size
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'connect_args': {
-            'check_same_thread': False,
-            'timeout': 30
-        },
-        'pool_pre_ping': True,
-        'pool_recycle': 300
-    }
+    # Load configuration from Config class
+    from config import Config
+    app.config.from_object(Config)
 
     # Ensure upload folder exists
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
