@@ -137,8 +137,8 @@ def scan_music_folders(user=None, parent_folder=None, parent_playlist=None, curr
 @main.route('/landing')
 @main.route('/landingpage')
 def index():
-    """Page d'accueil - Landing page accessible à tous"""
-    return render_template('landing_page.html')
+    """Redirige vers la page de login"""
+    return redirect(url_for('auth.login'))
 
 @main.route('/details')
 def landing_details():
