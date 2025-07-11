@@ -235,7 +235,6 @@ def initialize_system():
             is_admin=True,
             is_active=True,
             can_access_mixer=True,
-            can_access_converter=True
         )
         admin.set_password('admin')
         db.session.add(admin)
