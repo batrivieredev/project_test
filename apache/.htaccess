@@ -1,0 +1,8 @@
+Options +Indexes
+IndexOptions FancyIndexing
+IndexIgnore .htaccess
+
+<Files ~ "\.(mp3|mp4)$">
+    ForceType application/octet-stream
+    Header set Content-Disposition attachment
+</Files>
