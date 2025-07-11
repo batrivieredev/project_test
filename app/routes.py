@@ -408,3 +408,53 @@ def get_tracks_for_playlist(playlist_id):
             })
     return jsonify(result)
 
+@api.route('/tracks/<int:track_id>/file')
+@login_required
+@mixer_access_required
+def get_track_file(track_id):
+    track = Track.query.get(track_id)
+    if not track:
+        return jsonify({'error': 'Track non trouvée'}), 404
+
+    if not track.exists:
+        return jsonify({'error': 'Fichier audio introuvable'}), 404
+
+    return send_file(track.file_path, conditional=True)
+
+
+@api.route('/tracks')
+@login_required
+@mixer_access_required
+def get_all_tracks():
+    """Retourne toutes les pistes de l'utilisateur connecté"""
+    tracks = Track.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{
+        'id': t.id,
+        'title': t.title,
+        'artist': t.artist,
+        'album': t.album if hasattr(t, 'album') else '',
+        'duration': t.duration if hasattr(t, 'duration') else 0,
+        'bpm': t.bpm if hasattr(t, 'bpm') else None,
+        'key': t.key if hasattr(t, 'key') else None,
+        'file_path': t.file_path,
+    } for t in tracks])
+
+
+@api.route('/tracks/<int:track_id>')
+@login_required
+@mixer_access_required
+def get_track_info(track_id):
+    track = Track.query.filter_by(id=track_id, user_id=current_user.id).first()
+    if not track:
+        return jsonify({'error': 'Track non trouvée'}), 404
+
+    return jsonify({
+        'id': track.id,
+        'title': track.title,
+        'artist': track.artist,
+        'album': getattr(track, 'album', ''),
+        'duration': getattr(track, 'duration', 0),
+        'bpm': getattr(track, 'bpm', None),
+        'key': getattr(track, 'key', None),
+        'file_path': track.file_path,
+    })
