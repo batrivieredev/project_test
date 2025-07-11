@@ -384,3 +384,27 @@ def delete_user(user_id):
         flash('Erreur lors de la suppression de l\'utilisateur', 'error')
 
     return redirect(url_for('admin.users_list'))
+
+
+@api.route('/playlists/<int:playlist_id>/tracks')
+@login_required
+@mixer_access_required
+def get_tracks_for_playlist(playlist_id):
+    """Retourne les musiques d'une playlist donnée"""
+    playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
+    if not playlist:
+        return jsonify({'error': 'Playlist non trouvée'}), 404
+
+    tracks = PlaylistTrack.query.filter_by(playlist_id=playlist.id).all()
+    result = []
+    for pt in tracks:
+        track = Track.query.get(pt.track_id)
+        if track:
+            result.append({
+                'id': track.id,
+                'title': track.title,
+                'artist': track.artist,
+                'filepath': track.file_path  # ✅ CORRIGÉ ICI
+            })
+    return jsonify(result)
+
