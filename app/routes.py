@@ -134,16 +134,25 @@ def scan_music_folders(user=None, parent_folder=None, parent_playlist=None, curr
 
 # Routes principales
 @main.route('/')
-@main.route('/landing')
-@main.route('/landingpage')
 def index():
     """Redirige vers la page de login"""
     return redirect(url_for('auth.login'))
+
+@main.route('/landingpage')
+def landingpage():
+    """Affiche la page landing_page.html"""
+    return render_template('landing_page.html')
+
+@main.route('/landing')
+def landing():
+    """Optionnel : redirige vers landingpage ou login selon besoin"""
+    return redirect(url_for('main.landingpage'))  # ou vers login selon usage
 
 @main.route('/details')
 def landing_details():
     """Page de présentation détaillée des fonctionnalités"""
     return render_template('landing_page_details.html')
+
 
 @main.route('/choose')
 @login_required
@@ -272,7 +281,7 @@ def create_user():
     password = request.form.get('password')
     is_active = bool(request.form.get('is_active'))
     can_access_mixer = bool(request.form.get('can_access_mixer'))
-    can_access_converter = bool(request.form.get('can_access_converter'))
+    # can_access_converter supprimé
     is_admin = bool(request.form.get('is_admin'))
 
     if User.query.filter_by(username=username).first():
@@ -288,7 +297,6 @@ def create_user():
         email=email,
         is_active=is_active,
         can_access_mixer=can_access_mixer,
-        can_access_converter=can_access_converter,
         is_admin=is_admin
     )
     user.set_password(password)
@@ -303,6 +311,7 @@ def create_user():
 
     return redirect(url_for('admin.users_list'))
 
+
 @admin.route('/users/<int:user_id>', methods=['POST'])
 @login_required
 @admin_required
@@ -315,7 +324,6 @@ def update_user(user_id):
         return redirect(url_for('admin.users_list'))
 
     try:
-        # Mise à jour des droits
         action = request.form.get('action')
         if action == 'toggle_mixer_access':
             user.can_access_mixer = not user.can_access_mixer
@@ -323,10 +331,9 @@ def update_user(user_id):
         else:
             user.is_active = bool(request.form.get('is_active'))
             user.can_access_mixer = bool(request.form.get('can_access_mixer'))
-            user.can_access_converter = bool(request.form.get('can_access_converter'))
+            # can_access_converter supprimé
             user.is_admin = bool(request.form.get('is_admin'))
 
-            # Mise à jour de l'email
             new_email = request.form.get('email')
             if new_email and new_email != user.email:
                 if User.query.filter_by(email=new_email).first():
@@ -334,7 +341,6 @@ def update_user(user_id):
                     return redirect(url_for('admin.users_list'))
                 user.email = new_email
 
-            # Mise à jour du mot de passe si fourni
             new_password = request.form.get('password')
             if new_password:
                 user.set_password(new_password)
@@ -347,6 +353,7 @@ def update_user(user_id):
         flash('Erreur lors de la mise à jour de l\'utilisateur', 'error')
 
     return redirect(url_for('admin.users_list'))
+
 
 @admin.route('/')
 @login_required

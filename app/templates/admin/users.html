@@ -32,8 +32,7 @@
                         <td>
                             <div class="d-flex align-items-center">
                                 <span class="material-icons user-icon me-2">
-                                    {% if user.is_admin %}admin_panel_settings
-                                    {% else %}person{% endif %}
+                                    {% if user.is_admin %}admin_panel_settings{% else %}person{% endif %}
                                 </span>
                                 <span class="user-name">{{ user.username }}</span>
                             </div>
@@ -77,80 +76,6 @@
                             {% endif %}
                         </td>
                     </tr>
-
-                    {# Modal d'édition pour chaque utilisateur #}
-                    <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <form method="POST" action="{{ url_for('admin.update_user', user_id=user.id) }}">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">
-                                            <span class="material-icons me-2">edit</span>
-                                            Modifier l'utilisateur {{ user.username }}
-                                        </h5>
-                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="form-section mb-4">
-                                            <h6 class="form-section-title">Droits utilisateur</h6>
-                                            <div class="permission-grid">
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input" name="is_active"
-                                                           id="is_active{{ user.id }}" {% if user.is_active %}checked{% endif %}>
-                                                    <label class="form-check-label" for="is_active{{ user.id }}">
-                                                        Compte actif
-                                                    </label>
-                                                </div>
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input" name="can_access_mixer"
-                                                           id="can_access_mixer{{ user.id }}"
-                                                           {% if user.can_access_mixer %}checked{% endif %}>
-                                                    <label class="form-check-label" for="can_access_mixer{{ user.id }}">
-                                                        Accès DJ Mixer
-                                                    </label>
-                                                </div>
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input" name="can_access_converter"
-                                                           id="can_access_converter{{ user.id }}"
-                                                           {% if user.can_access_converter %}checked{% endif %}>
-                                                    <label class="form-check-label" for="can_access_converter{{ user.id }}">
-                                                        Accès Convertisseur
-                                                    </label>
-                                                </div>
-                                                <div class="form-check form-switch">
-                                                    <input type="checkbox" class="form-check-input" name="is_admin"
-                                                           id="is_admin{{ user.id }}" {% if user.is_admin %}checked{% endif %}>
-                                                    <label class="form-check-label" for="is_admin{{ user.id }}">
-                                                        Droits administrateur
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="form-floating mb-3">
-                                            <input type="email" class="form-control" id="edit_email{{ user.id }}"
-                                                   name="email" value="{{ user.email }}" required>
-                                            <label for="edit_email{{ user.id }}">Email</label>
-                                        </div>
-                                        <div class="form-floating">
-                                            <input type="password" class="form-control" id="edit_password{{ user.id }}"
-                                                   name="password" placeholder="Nouveau mot de passe">
-                                            <label for="edit_password{{ user.id }}">Nouveau mot de passe (optionnel)</label>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
-                                            <span class="material-icons">close</span>
-                                            <span>Annuler</span>
-                                        </button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <span class="material-icons">save</span>
-                                            <span>Enregistrer</span>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
                     {% endfor %}
                 </tbody>
             </table>
@@ -158,17 +83,73 @@
     </div>
 </div>
 
+{# Modals d'édition pour chaque utilisateur #}
+{% for user in users %}
+<div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1" aria-labelledby="editUserModalLabel{{ user.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.update_user', user_id=user.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel{{ user.id }}">
+                        <span class="material-icons me-2">edit</span>
+                        Modifier l'utilisateur {{ user.username }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title">Droits utilisateur</h6>
+                        <div class="permission-grid">
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="is_active" id="is_active{{ user.id }}" {% if user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active{{ user.id }}">Compte actif</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="can_access_mixer" id="can_access_mixer{{ user.id }}" {% if user.can_access_mixer %}checked{% endif %}>
+                                <label class="form-check-label" for="can_access_mixer{{ user.id }}">Accès DJ Mixer</label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input type="checkbox" class="form-check-input" name="is_admin" id="is_admin{{ user.id }}" {% if user.is_admin %}checked{% endif %}>
+                                <label class="form-check-label" for="is_admin{{ user.id }}">Droits administrateur</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="edit_email{{ user.id }}" name="email" value="{{ user.email }}" required>
+                        <label for="edit_email{{ user.id }}">Email</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="edit_password{{ user.id }}" name="password" placeholder="Nouveau mot de passe">
+                        <label for="edit_password{{ user.id }}">Nouveau mot de passe (optionnel)</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                        <span class="material-icons">close</span>
+                        <span>Annuler</span>
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-icons">save</span>
+                        <span>Enregistrer</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 {# Modal de création d'utilisateur #}
-<div class="modal fade" id="createUserModal" tabindex="-1">
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="POST" action="{{ url_for('admin.create_user') }}">
                 <div class="modal-header">
-                    <h5 class="modal-title">
+                    <h5 class="modal-title" id="createUserModalLabel">
                         <span class="material-icons me-2">person_add</span>
                         Nouvel Utilisateur
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="form-floating mb-3">
@@ -188,32 +169,16 @@
                         <h6 class="form-section-title">Droits utilisateur</h6>
                         <div class="permission-grid">
                             <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" name="is_active"
-                                       id="new_is_active" checked>
-                                <label class="form-check-label" for="new_is_active">
-                                    Compte actif
-                                </label>
+                                <input type="checkbox" class="form-check-input" name="is_active" id="new_is_active" checked>
+                                <label class="form-check-label" for="new_is_active">Compte actif</label>
                             </div>
                             <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" name="can_access_mixer"
-                                       id="new_can_access_mixer">
-                                <label class="form-check-label" for="new_can_access_mixer">
-                                    Accès DJ Mixer
-                                </label>
+                                <input type="checkbox" class="form-check-input" name="can_access_mixer" id="new_can_access_mixer">
+                                <label class="form-check-label" for="new_can_access_mixer">Accès DJ Mixer</label>
                             </div>
                             <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" name="can_access_converter"
-                                       id="new_can_access_converter">
-                                <label class="form-check-label" for="new_can_access_converter">
-                                    Accès Convertisseur
-                                </label>
-                            </div>
-                            <div class="form-check form-switch">
-                                <input type="checkbox" class="form-check-input" name="is_admin"
-                                       id="new_is_admin">
-                                <label class="form-check-label" for="new_is_admin">
-                                    Droits administrateur
-                                </label>
+                                <input type="checkbox" class="form-check-input" name="is_admin" id="new_is_admin">
+                                <label class="form-check-label" for="new_is_admin">Droits administrateur</label>
                             </div>
                         </div>
                     </div>
@@ -395,5 +360,14 @@
     color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
 }
+
+.modal {
+  z-index: 1055 !important;
+}
+
+.modal-backdrop {
+  z-index: 1050 !important;
+}
+
 </style>
 {% endblock %}
