@@ -55,14 +55,9 @@ def initialize_system():
 
     app = create_app()
 
-    # Configure database URI based on environment
-    if os.getenv('DB_TYPE', 'sqlite') == 'postgresql':
-        db_uri = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-    else:
-        db_path = os.path.join(app_dir, 'app.db')
-        db_uri = f'sqlite:///{db_path}'
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+    # Database configuration will be handled by Config class
+    from config import Config
+    app.config.from_object(Config)
 
     # Set application folders
     app.config['MUSIC_FOLDER'] = os.getenv('MUSIC_DIR', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'musiques'))
