@@ -2,7 +2,8 @@
 Script d'initialisation rapide du système:
 - Crée les tables de la base de données
 - Crée l'utilisateur admin par défaut
-- Scanne le dossier /var/www/html/dj/musiques et crée playlists + tracks
+- Scanne le dossier /var/www/html/dj/musiques et crée playlists + tracks,
+  y compris les MP3 isolés dans le dossier principal.
 """
 import os
 import sys
@@ -98,22 +99,26 @@ def count_mp3_files(directory):
 def scan_music_folders(main_dir, user_id):
     print(f"\n📂 Processing main music directory: {main_dir}")
     try:
+        # Sous-dossiers directs (playlists)
         subdirs = [d for d in os.listdir(main_dir) if os.path.isdir(os.path.join(main_dir, d)) and not d.startswith('.')]
-        if not subdirs:
-            print("⚠️ No subdirectories found in music folder")
+        # MP3 dans dossier principal sans sous-dossier
+        singles = [f for f in os.listdir(main_dir)
+                   if os.path.isfile(os.path.join(main_dir, f)) and f.lower().endswith('.mp3')]
+
+        if not subdirs and not singles:
+            print("⚠️ Aucun dossier ni fichier MP3 trouvé dans le dossier musique")
             return
 
-        print(f"📁 Found {len(subdirs)} music folders to process")
-
-        total_files = sum(count_mp3_files(os.path.join(main_dir, sd)) for sd in subdirs)
-        print(f"\n📊 Total MP3 files to process: {total_files}")
+        total_files = sum(count_mp3_files(os.path.join(main_dir, sd)) for sd in subdirs) + len(singles)
+        print(f"\n📊 Total MP3 files à traiter: {total_files}")
 
         current_file = 0
         start_time = time.time()
 
+        # Traite chaque sous-dossier comme une playlist
         for subdir in subdirs:
             folder_path = os.path.join(main_dir, subdir)
-            print(f"\n🎵 Processing folder: {subdir}")
+            print(f"\n🎵 Traitement du dossier : {subdir}")
 
             music_files = []
             for root, _, files in os.walk(folder_path):
@@ -137,12 +142,34 @@ def scan_music_folders(main_dir, user_id):
                     current_file += 1
                     process_audio_file(file_path, playlist, user_id, current_file, total_files, start_time)
 
-                print(f"\n✅ Finished processing {subdir}")
+                print(f"\n✅ Fin du traitement de {subdir}")
             else:
-                print(f"⚠️ No MP3 files in {subdir}")
+                print(f"⚠️ Aucun fichier MP3 dans {subdir}")
+
+        # Crée une playlist spéciale pour les MP3 seuls dans le dossier principal
+        if singles:
+            print(f"\n🎵 Traitement des MP3 seuls dans {main_dir} (playlist 'Singles')")
+
+            singles_playlist = Playlist.query.filter_by(name="Singles", user_id=user_id).first()
+            if not singles_playlist:
+                singles_playlist = Playlist(
+                    name="Singles",
+                    folder_path=main_dir,
+                    is_auto=True,
+                    user_id=user_id
+                )
+                db.session.add(singles_playlist)
+                db.session.commit()
+
+            for single_file in singles:
+                current_file += 1
+                file_path = os.path.join(main_dir, single_file)
+                process_audio_file(file_path, singles_playlist, user_id, current_file, total_files, start_time)
+
+            print(f"\n✅ Fin du traitement des MP3 seuls")
 
     except Exception as e:
-        print(f"❌ Error scanning music folders: {str(e)}")
+        print(f"❌ Erreur lors du scan des dossiers musique: {str(e)}")
         db.session.rollback()
 
 def initialize_system():
@@ -155,11 +182,11 @@ def initialize_system():
         os.makedirs(app_dir)
 
     current_step += 1
-    print_progress_bar(current_step, total_steps, prefix='Initialization Progress:', suffix='Creating App')
+    print_progress_bar(current_step, total_steps, prefix='Progression initialisation:', suffix='Création de l\'app')
 
     app = create_app()
 
-    # Config PostgreSQL ou SQLite selon variables d'environnement
+    # Configuration DB PostgreSQL ou SQLite
     if os.getenv('DB_TYPE', 'sqlite') == 'postgresql':
         db_uri = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
     else:
@@ -168,26 +195,26 @@ def initialize_system():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 
-    # Dossier musique configuré
+    # Dossier musique
     app.config['MUSIC_FOLDER'] = os.getenv('MUSIC_DIR', '/var/www/html/dj/musiques')
 
     with app.app_context():
         current_step += 1
-        print_progress_bar(current_step, total_steps, prefix='Initialization Progress:', suffix='Creating Database')
+        print_progress_bar(current_step, total_steps, prefix='Progression initialisation:', suffix='Création de la base')
 
         try:
             db.session.execute('SELECT 1 FROM playlists')
-            print("\n✓ Database tables exist, clearing data...")
+            print("\n✓ Les tables existent déjà, suppression des données...")
         except Exception:
-            print("\n⚠️ Database tables not found, creating schema...")
+            print("\n⚠️ Tables non trouvées, création du schéma...")
         db.drop_all()
         db.create_all()
         db.session.commit()
 
         current_step += 1
-        print_progress_bar(current_step, total_steps, prefix='Initialization Progress:', suffix='Creating Admin')
+        print_progress_bar(current_step, total_steps, prefix='Progression initialisation:', suffix='Création de l\'admin')
 
-        print("\n👤 Creating admin user...")
+        print("\n👤 Création de l'utilisateur admin...")
         admin = User(
             username='admin',
             email='admin@example.com',
@@ -198,22 +225,22 @@ def initialize_system():
         admin.set_password('admin')
         db.session.add(admin)
         db.session.commit()
-        print("✅ Admin user created")
+        print("✅ Admin créé")
 
         current_step += 1
-        print_progress_bar(current_step, total_steps, prefix='Initialization Progress:', suffix='Scanning Music')
+        print_progress_bar(current_step, total_steps, prefix='Progression initialisation:', suffix='Scan musique')
 
         music_dir = app.config['MUSIC_FOLDER']
 
         if os.path.exists(music_dir) and os.path.isdir(music_dir):
-            print(f"✓ Starting scan of: {music_dir}")
+            print(f"✓ Début du scan de : {music_dir}")
             scan_music_folders(music_dir, admin.id)
         else:
-            print(f"⚠️ Music directory not found: {music_dir}")
+            print(f"⚠️ Dossier musique introuvable : {music_dir}")
 
         total_time = time.time() - start_time
-        print(f"\n✅ System initialization complete! ({format_time(total_time)})")
-        print("🔑 Login with admin/admin")
+        print(f"\n✅ Initialisation terminée ! ({format_time(total_time)})")
+        print("🔑 Connexion avec admin/admin")
 
 if __name__ == '__main__':
     initialize_system()
