@@ -196,6 +196,19 @@ source
         </div>
     </section>
 
+    <!-- Video Presentation Section -->
+    <section class="video-presentation-section py-5">
+        <div class="container">
+            <h2 class="section-title text-center mb-4">Présentation Vidéo</h2>
+            <div class="video-wrapper" style="max-width: 900px; margin: 0 auto;">
+                <video autoplay muted loop playsinline controls class="w-100 rounded-4 shadow-lg" style="border: 3px solid rgba(255,255,255,0.2);">
+                    <source src="{{ url_for('static', filename='video/demo_portfolio_baptiste_riviere.mov') }}" type="video/mp4">
+                    Votre navigateur ne supporte pas la vidéo HTML5.
+                </video>
+            </div>
+        </div>
+    </section>
+
     <!-- Get Started -->
     <section class="get-started-section">
         <div class="container text-center">
@@ -424,19 +437,16 @@ source
     font-size: 0.9rem;
 }
 
-/* Code Snippets */
-.code-snippet {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
+/* Video Presentation Section */
+.video-presentation-section {
+    background: rgba(0,0,0,0.15);
+    border-radius: 16px;
+    padding: 3rem 0;
+    margin-bottom: 4rem;
 }
 
-.code-snippet pre {
-    margin: 0;
-    font-family: 'Monaco', 'Consolas', monospace;
-    font-size: 0.875rem;
-    color: #e6e6e6;
+.video-wrapper video {
+    max-height: 500px;
 }
 
 /* Get Started Section */
@@ -525,4 +535,5 @@ source
     }
 }
 </style>
+
 {% endblock %}
