@@ -35,6 +35,10 @@ def create_app():
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
 
+    # Swagger (doc API)
+    from .swagger_config import init_swagger
+    init_swagger(app)
+
     from .models import User
 
     @login_manager.user_loader

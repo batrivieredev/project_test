@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, send_file, current_app, make_response
 from datetime import timedelta
+from flasgger.utils import swag_from
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from .models import db, User, Track, Playlist, PlaylistTrack
@@ -23,7 +24,8 @@ admin = Blueprint('admin', __name__, url_prefix='/admin')
 @api.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+    # Ajout de Authorization pour que Swagger puisse envoyer le token JWT
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     return response
 
@@ -134,28 +136,47 @@ def scan_music_folders(user=None, parent_folder=None, parent_playlist=None, curr
 
 # Routes principales
 @main.route('/')
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Page d'accueil - redirection vers login"
+})
 def index():
     """Redirige vers la page de login"""
     return redirect(url_for('auth.login'))
 
 @main.route('/landingpage')
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Page de présentation principale (landing page)"
+})
 def landingpage():
     """Affiche la page landing_page.html"""
     return render_template('landing_page.html')
 
 @main.route('/landing')
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Redirection optionnelle vers landingpage"
+})
 def landing():
     """Optionnel : redirige vers landingpage ou login selon besoin"""
-    return redirect(url_for('main.landingpage'))  # ou vers login selon usage
+    return redirect(url_for('main.landingpage'))
 
 @main.route('/details')
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Page détaillée des fonctionnalités"
+})
 def landing_details():
     """Page de présentation détaillée des fonctionnalités"""
     return render_template('landing_page_details.html')
 
-
 @main.route('/choose')
 @login_required
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Choix entre administration et mixer"
+})
 def choose_mode():
     """Page de choix entre administration et mixer"""
     return render_template('choose_mode.html')
@@ -163,6 +184,10 @@ def choose_mode():
 @main.route('/loading')
 @login_required
 @mixer_access_required
+@swag_from({
+    'tags': ['mixer'],
+    'summary': "Page de chargement avant d'accéder au mixer"
+})
 def loading():
     """Page de chargement avant le mixer"""
     return render_template('loading.html')
@@ -170,12 +195,20 @@ def loading():
 @main.route('/mixer')
 @login_required
 @mixer_access_required
+@swag_from({
+    'tags': ['mixer'],
+    'summary': "Page principale du mixer DJ"
+})
 def mixer():
     """Page du mixer DJ - Nécessite l'autorisation d'accès"""
     return render_template('mixer.html')
 
 # Routes d'authentification
 @auth.route('/login', methods=['GET', 'POST'])
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Connexion utilisateur"
+})
 def login():
     """Gestion de la connexion"""
     if current_user.is_authenticated:
@@ -205,6 +238,10 @@ def login():
 
 @auth.route('/logout')
 @login_required
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Déconnexion utilisateur"
+})
 def logout():
     """Handle user logout"""
     logout_user()
@@ -212,6 +249,10 @@ def logout():
     return redirect(url_for('auth.login'))
 
 @auth.route('/register', methods=['POST'])
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Inscription d'un nouvel utilisateur"
+})
 def register():
     """Handle new user registration"""
     username = request.form.get('username')
@@ -261,6 +302,10 @@ def register():
 @api.route('/playlists')
 @login_required
 @mixer_access_required
+@swag_from({
+    'tags': ['playlists'],
+    'summary': "Liste des playlists de l'utilisateur"
+})
 def get_playlists():
     """Retourne la liste des playlists de l'utilisateur"""
     playlists = Playlist.query.filter_by(user_id=current_user.id).all()
@@ -270,10 +315,131 @@ def get_playlists():
         'trackCount': len(p.tracks)
     } for p in playlists])
 
+@api.route('/playlists/<int:playlist_id>/tracks')
+@login_required
+@mixer_access_required
+@swag_from({
+    'tags': ['playlists'],
+    'summary': "Liste des pistes d'une playlist"
+})
+def get_tracks_for_playlist(playlist_id):
+    """Retourne les musiques d'une playlist donnée"""
+    playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
+    if not playlist:
+        return jsonify({'error': 'Playlist non trouvée'}), 404
+
+    tracks = PlaylistTrack.query.filter_by(playlist_id=playlist.id).all()
+    result = []
+    for pt in tracks:
+        track = Track.query.get(pt.track_id)
+        if track:
+            result.append({
+                'id': track.id,
+                'title': track.title,
+                'artist': track.artist,
+                'filepath': track.file_path
+            })
+    return jsonify(result)
+
+@api.route('/tracks/<int:track_id>/file')
+@login_required
+@mixer_access_required
+@swag_from({
+    'tags': ['tracks'],
+    'summary': "Récupérer le fichier audio d'une piste"
+})
+def get_track_file(track_id):
+    track = Track.query.get(track_id)
+    if not track:
+        return jsonify({'error': 'Track non trouvée'}), 404
+
+    if not track.exists:
+        return jsonify({'error': 'Fichier audio introuvable'}), 404
+
+    return send_file(track.file_path, conditional=True)
+
+
+@api.route('/tracks')
+@login_required
+@mixer_access_required
+@swag_from({
+    'tags': ['tracks'],
+    'summary': "Liste de toutes les pistes de l'utilisateur"
+})
+def get_all_tracks():
+    """Retourne toutes les pistes de l'utilisateur connecté"""
+    tracks = Track.query.filter_by(user_id=current_user.id).all()
+    return jsonify([{
+        'id': t.id,
+        'title': t.title,
+        'artist': t.artist,
+        'album': t.album if hasattr(t, 'album') else '',
+        'duration': t.duration if hasattr(t, 'duration') else 0,
+        'bpm': t.bpm if hasattr(t, 'bpm') else None,
+        'key': t.key if hasattr(t, 'key') else None,
+        'file_path': t.file_path,
+    } for t in tracks])
+
+
+@api.route('/tracks/<int:track_id>')
+@login_required
+@mixer_access_required
+@swag_from({
+    'tags': ['tracks'],
+    'summary': "Informations détaillées d'une piste"
+})
+def get_track_info(track_id):
+    track = Track.query.filter_by(id=track_id, user_id=current_user.id).first()
+    if not track:
+        return jsonify({'error': 'Track non trouvée'}), 404
+
+    return jsonify({
+        'id': track.id,
+        'title': track.title,
+        'artist': track.artist,
+        'album': getattr(track, 'album', ''),
+        'duration': getattr(track, 'duration', 0),
+        'bpm': getattr(track, 'bpm', None),
+        'key': getattr(track, 'key', None),
+        'file_path': track.file_path,
+    })
+
+@api.route('/v1/health', methods=['GET'])
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Vérifie que le serveur fonctionne",
+    'responses': {
+        200: {
+            'description': 'Retourne un statut simple',
+            'content': {
+                'application/json': {
+                    'example': {'status': 'ok'}
+                }
+            }
+        }
+    }
+})
+def health_check():
+    """Health check endpoint"""
+    return jsonify({'status': 'ok'})
+
+# Route test ping simple (utile pour vérifier que Swagger fonctionne)
+@api.route('/ping', methods=['GET'])
+@swag_from({
+    'tags': ['auth'],
+    'summary': "Test ping rapide"
+})
+def ping():
+    return jsonify({"message": "pong"})
+
 # Routes d'administration
 @admin.route('/users/create', methods=['POST'])
 @login_required
 @admin_required
+@swag_from({
+    'tags': ['admin'],
+    'summary': "Création d'un nouvel utilisateur"
+})
 def create_user():
     """Création d'un nouvel utilisateur"""
     username = request.form.get('username')
@@ -281,7 +447,6 @@ def create_user():
     password = request.form.get('password')
     is_active = bool(request.form.get('is_active'))
     can_access_mixer = bool(request.form.get('can_access_mixer'))
-    # can_access_converter supprimé
     is_admin = bool(request.form.get('is_admin'))
 
     if User.query.filter_by(username=username).first():
@@ -315,6 +480,10 @@ def create_user():
 @admin.route('/users/<int:user_id>', methods=['POST'])
 @login_required
 @admin_required
+@swag_from({
+    'tags': ['admin'],
+    'summary': "Mise à jour d'un utilisateur"
+})
 def update_user(user_id):
     """Mise à jour d'un utilisateur"""
     user = User.query.get_or_404(user_id)
@@ -331,7 +500,6 @@ def update_user(user_id):
         else:
             user.is_active = bool(request.form.get('is_active'))
             user.can_access_mixer = bool(request.form.get('can_access_mixer'))
-            # can_access_converter supprimé
             user.is_admin = bool(request.form.get('is_admin'))
 
             new_email = request.form.get('email')
@@ -358,6 +526,10 @@ def update_user(user_id):
 @admin.route('/')
 @login_required
 @admin_required
+@swag_from({
+    'tags': ['admin'],
+    'summary': "Tableau de bord administration"
+})
 def dashboard():
     """Admin dashboard showing user statistics"""
     users = User.query.order_by(User.created_at.desc()).all()
@@ -366,6 +538,10 @@ def dashboard():
 @admin.route('/users')
 @login_required
 @admin_required
+@swag_from({
+    'tags': ['admin'],
+    'summary': "Liste des utilisateurs"
+})
 def users_list():
     """List all users for administration"""
     users = User.query.order_by(User.created_at.desc()).all()
@@ -374,6 +550,10 @@ def users_list():
 @admin.route('/users/<int:user_id>/delete', methods=['POST'])
 @login_required
 @admin_required
+@swag_from({
+    'tags': ['admin'],
+    'summary': "Suppression d'un utilisateur"
+})
 def delete_user(user_id):
     """Delete a user account"""
     user = User.query.get_or_404(user_id)
@@ -392,76 +572,4 @@ def delete_user(user_id):
 
     return redirect(url_for('admin.users_list'))
 
-
-@api.route('/playlists/<int:playlist_id>/tracks')
-@login_required
-@mixer_access_required
-def get_tracks_for_playlist(playlist_id):
-    """Retourne les musiques d'une playlist donnée"""
-    playlist = Playlist.query.filter_by(id=playlist_id, user_id=current_user.id).first()
-    if not playlist:
-        return jsonify({'error': 'Playlist non trouvée'}), 404
-
-    tracks = PlaylistTrack.query.filter_by(playlist_id=playlist.id).all()
-    result = []
-    for pt in tracks:
-        track = Track.query.get(pt.track_id)
-        if track:
-            result.append({
-                'id': track.id,
-                'title': track.title,
-                'artist': track.artist,
-                'filepath': track.file_path  # ✅ CORRIGÉ ICI
-            })
-    return jsonify(result)
-
-@api.route('/tracks/<int:track_id>/file')
-@login_required
-@mixer_access_required
-def get_track_file(track_id):
-    track = Track.query.get(track_id)
-    if not track:
-        return jsonify({'error': 'Track non trouvée'}), 404
-
-    if not track.exists:
-        return jsonify({'error': 'Fichier audio introuvable'}), 404
-
-    return send_file(track.file_path, conditional=True)
-
-
-@api.route('/tracks')
-@login_required
-@mixer_access_required
-def get_all_tracks():
-    """Retourne toutes les pistes de l'utilisateur connecté"""
-    tracks = Track.query.filter_by(user_id=current_user.id).all()
-    return jsonify([{
-        'id': t.id,
-        'title': t.title,
-        'artist': t.artist,
-        'album': t.album if hasattr(t, 'album') else '',
-        'duration': t.duration if hasattr(t, 'duration') else 0,
-        'bpm': t.bpm if hasattr(t, 'bpm') else None,
-        'key': t.key if hasattr(t, 'key') else None,
-        'file_path': t.file_path,
-    } for t in tracks])
-
-
-@api.route('/tracks/<int:track_id>')
-@login_required
-@mixer_access_required
-def get_track_info(track_id):
-    track = Track.query.filter_by(id=track_id, user_id=current_user.id).first()
-    if not track:
-        return jsonify({'error': 'Track non trouvée'}), 404
-
-    return jsonify({
-        'id': track.id,
-        'title': track.title,
-        'artist': track.artist,
-        'album': getattr(track, 'album', ''),
-        'duration': getattr(track, 'duration', 0),
-        'bpm': getattr(track, 'bpm', None),
-        'key': getattr(track, 'key', None),
-        'file_path': track.file_path,
-    })
+# Fin du fichier

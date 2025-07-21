@@ -29,10 +29,9 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
 def format_time(seconds):
     return str(timedelta(seconds=int(seconds)))
 
-def process_audio_file(file_path, playlist, current_file, total_files, start_time, admin_id):
+def process_audio_file(file_path, playlist, user_id, current_file, total_files, start_time):
     try:
-        # Vérifie si le track existe déjà pour cet utilisateur
-        track = Track.query.filter_by(file_path=file_path, user_id=admin_id).first()
+        track = Track.query.filter_by(file_path=file_path, user_id=user_id).first()
         if not track:
             audio = MP3(file_path)
             title = os.path.splitext(os.path.basename(file_path))[0]
@@ -72,7 +71,7 @@ def process_audio_file(file_path, playlist, current_file, total_files, start_tim
                 file_path=file_path,
                 file_format="mp3",
                 file_size=os.path.getsize(file_path),
-                user_id=admin_id
+                user_id=user_id
             )
             db.session.add(track)
             db.session.commit()
@@ -97,10 +96,12 @@ def count_mp3_files(directory):
         count += sum(1 for f in files if f.lower().endswith('.mp3'))
     return count
 
-def scan_music_folders(main_dir, admin_id):
+def scan_music_folders(main_dir, user_id):
     print(f"\n📂 Processing main music directory: {main_dir}")
     try:
+        # Sous-dossiers directs (playlists)
         subdirs = [d for d in os.listdir(main_dir) if os.path.isdir(os.path.join(main_dir, d)) and not d.startswith('.')]
+        # MP3 dans dossier principal sans sous-dossier
         singles = [f for f in os.listdir(main_dir)
                    if os.path.isfile(os.path.join(main_dir, f)) and f.lower().endswith('.mp3')]
 
@@ -114,6 +115,7 @@ def scan_music_folders(main_dir, admin_id):
         current_file = 0
         start_time = time.time()
 
+        # Traite chaque sous-dossier comme une playlist
         for subdir in subdirs:
             folder_path = os.path.join(main_dir, subdir)
             print(f"\n🎵 Traitement du dossier : {subdir}")
@@ -125,35 +127,36 @@ def scan_music_folders(main_dir, admin_id):
                         music_files.append(os.path.join(root, f))
 
             if music_files:
-                playlist = Playlist.query.filter_by(folder_path=folder_path, user_id=admin_id).first()
+                playlist = Playlist.query.filter_by(folder_path=folder_path, user_id=user_id).first()
                 if not playlist:
                     playlist = Playlist(
                         name=subdir,
                         folder_path=folder_path,
                         is_auto=True,
-                        user_id=admin_id
+                        user_id=user_id
                     )
                     db.session.add(playlist)
                     db.session.commit()
 
                 for file_path in music_files:
                     current_file += 1
-                    process_audio_file(file_path, playlist, current_file, total_files, start_time, admin_id)
+                    process_audio_file(file_path, playlist, user_id, current_file, total_files, start_time)
 
                 print(f"\n✅ Fin du traitement de {subdir}")
             else:
                 print(f"⚠️ Aucun fichier MP3 dans {subdir}")
 
+        # Crée une playlist spéciale pour les MP3 seuls dans le dossier principal
         if singles:
             print(f"\n🎵 Traitement des MP3 seuls dans {main_dir} (playlist 'Singles')")
 
-            singles_playlist = Playlist.query.filter_by(name="Singles", user_id=admin_id).first()
+            singles_playlist = Playlist.query.filter_by(name="Singles", user_id=user_id).first()
             if not singles_playlist:
                 singles_playlist = Playlist(
                     name="Singles",
                     folder_path=main_dir,
                     is_auto=True,
-                    user_id=admin_id
+                    user_id=user_id
                 )
                 db.session.add(singles_playlist)
                 db.session.commit()
@@ -161,7 +164,7 @@ def scan_music_folders(main_dir, admin_id):
             for single_file in singles:
                 current_file += 1
                 file_path = os.path.join(main_dir, single_file)
-                process_audio_file(file_path, singles_playlist, current_file, total_files, start_time, admin_id)
+                process_audio_file(file_path, singles_playlist, user_id, current_file, total_files, start_time)
 
             print(f"\n✅ Fin du traitement des MP3 seuls")
 
@@ -183,6 +186,7 @@ def initialize_system():
 
     app = create_app()
 
+    # Configuration DB PostgreSQL ou SQLite
     if os.getenv('DB_TYPE', 'sqlite') == 'postgresql':
         db_uri = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
     else:
@@ -190,6 +194,8 @@ def initialize_system():
         db_uri = f'sqlite:///{db_path}'
 
     app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+
+    # Dossier musique
     app.config['MUSIC_FOLDER'] = os.getenv('MUSIC_DIR', '/var/www/html/dj/musiques')
 
     with app.app_context():
@@ -225,6 +231,7 @@ def initialize_system():
         print_progress_bar(current_step, total_steps, prefix='Progression initialisation:', suffix='Scan musique')
 
         music_dir = app.config['MUSIC_FOLDER']
+
         if os.path.exists(music_dir) and os.path.isdir(music_dir):
             print(f"✓ Début du scan de : {music_dir}")
             scan_music_folders(music_dir, admin.id)

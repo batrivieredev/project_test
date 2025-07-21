@@ -1,33 +1,40 @@
 {% extends "base.html" %}
 
-{% block title %}DJ Pro Studio - Fonctionnalités Détaillées{% endblock %}
+{% block title %}DJ Pro Studio - Detailed Features / Fonctionnalités Détaillées{% endblock %}
 
 {% block content %}
-<div class="landing-details-container">
-    <!-- Hero Section -->
-    <section class="hero-section-details">
-        <div class="container">
-            <h1 class="text-center mb-5">
-                <span class="gradient-text">Découvrez DJ Pro Studio</span>
-            </h1>
-            <p class="text-center hero-subtitle">Une suite complète d'outils pour les DJs professionnels</p>
-        </div>
-    </section>
+<div class="language-switch">
+    <button id="btn-fr" class="btn btn-outline-light btn-sm">FR 🇫🇷</button>
+    <button id="btn-en" class="btn btn-outline-light btn-sm" style="display:none;">EN 🇬🇧</button>
+</div>
 
-    <!-- Features Gallery -->
-    <section class="features-gallery">
-        <div class="container">
-            <!-- Interface de Mixage -->
-            <div class="feature-block">
-                <h2 class="section-title">Interface de Mixage Professionnelle</h2>
-                <div class="feature-content">
-                    <div class="feature-image">
-                        <img src="{{ url_for('static', filename='images/mixer.png') }}" alt="Interface de mixage" class="img-fluid rounded shadow-lg">
-                    </div>
-                    <div class="feature-description">
-                        <h3>Console de Mix Virtuelle</h3>
-                        <div class="code-window">
-                            <pre><code class="language-javascript">class DeckController {
+<!-- Contenu anglais (visible par défaut) -->
+<div id="content-en" style="display: block;">
+    <div class="landing-details-container">
+        <!-- Hero Section -->
+        <section class="hero-section-details">
+            <div class="container">
+                <h1 class="text-center mb-5">
+                    <span class="gradient-text">Discover DJ Pro Studio</span>
+                </h1>
+                <p class="text-center hero-subtitle">A complete suite of tools for professional DJs</p>
+            </div>
+        </section>
+
+        <!-- Features Gallery -->
+        <section class="features-gallery">
+            <div class="container">
+                <!-- Mixing Interface -->
+                <div class="feature-block">
+                    <h2 class="section-title">Professional Mixing Interface</h2>
+                    <div class="feature-content">
+                        <div class="feature-image">
+                            <img src="{{ url_for('static', filename='images/mixer.png') }}" alt="Mixing interface" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Virtual Mix Console</h3>
+                            <div class="code-window">
+                                <pre><code class="language-javascript">class DeckController {
     constructor(id) {
         this.audio = new Audio();
         this.gainNode = audioContext.createGain();
@@ -41,51 +48,51 @@
         this.dataArray = new Uint8Array(this.bufferLength);
     }
 }</code></pre>
+                            </div>
+                            <p>Intuitive interface with real-time waveform visualization and precise mix control.</p>
                         </div>
-                        <p>Interface intuitive avec visualisation en temps réel des formes d'onde et contrôle précis du mix.</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Gestion des Playlists -->
-            <div class="feature-block">
-                <h2 class="section-title">Gestion Avancée des Playlists</h2>
-                <div class="feature-content">
-                    <div class="feature-image">
-                        <img src="{{ url_for('static', filename='images/playlist.png') }}" alt="Gestion des playlists" class="img-fluid rounded shadow-lg">
-                    </div>
-                    <div class="feature-description">
-                        <h3>Organisation Intelligente</h3>
-                        <div class="code-window">
-                            <pre><code class="language-javascript">// Gestion des playlists
+                <!-- Playlist Management -->
+                <div class="feature-block">
+                    <h2 class="section-title">Advanced Playlist Management</h2>
+                    <div class="feature-content">
+                        <div class="feature-image">
+                            <img src="{{ url_for('static', filename='images/playlist.png') }}" alt="Playlist management" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Smart Organization</h3>
+                            <div class="code-window">
+                                <pre><code class="language-javascript">// Playlist management
 async function loadPlaylist(id) {
     const tracks = await fetch(`/api/playlists/${id}/tracks`)
         .then(r => r.json());
 
     tracks.forEach(track => {
-        // Analyse BPM et métadonnées
+        // BPM and metadata analysis
         analyzeBPM(track);
         updateTrackInfo(track);
     });
 }</code></pre>
+                            </div>
+                            <p>Organize your music library with custom playlists and intelligent metadata handling.</p>
                         </div>
-                        <p>Organisez votre bibliothèque musicale avec des playlists personnalisées et une gestion intelligente des métadonnées.</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Administration -->
-            <div class="feature-block">
-                <h2 class="section-title">Interface d'Administration</h2>
-                <div class="feature-content">
-                    <div class="feature-image-grid">
-                        <img src="{{ url_for('static', filename='images/PAGE_ADMINISTRATION.png') }}" alt="Page d'administration" class="img-fluid rounded shadow-lg">
-                        <img src="{{ url_for('static', filename='images/GESTION_DES_UTILISATEURS.png') }}" alt="Gestion des utilisateurs" class="img-fluid rounded shadow-lg">
-                    </div>
-                    <div class="feature-description">
-                        <h3>Gestion Complète des Utilisateurs</h3>
-                        <div class="code-window">
-                            <pre><code class="language-python">@admin.route('/users/create', methods=['POST'])
+                <!-- Administration -->
+                <div class="feature-block">
+                    <h2 class="section-title">Administration Interface</h2>
+                    <div class="feature-content">
+                        <div class="feature-image-grid">
+                            <img src="{{ url_for('static', filename='images/PAGE_ADMINISTRATION.png') }}" alt="Admin page" class="img-fluid rounded shadow-lg">
+                            <img src="{{ url_for('static', filename='images/GESTION_DES_UTILISATEURS.png') }}" alt="User management" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Full User Management</h3>
+                            <div class="code-window">
+                                <pre><code class="language-python">@admin.route('/users/create', methods=['POST'])
 @admin_required
 def create_user():
     user = User(
@@ -96,77 +103,245 @@ def create_user():
     )
     db.session.add(user)
     db.session.commit()</code></pre>
+                            </div>
+                            <p>Powerful admin interface to manage users and their permissions.</p>
                         </div>
-                        <p>Interface d'administration puissante pour gérer les utilisateurs et leurs permissions.</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Système d'Authentification -->
-            <div class="feature-block">
-                <h2 class="section-title">Système d'Authentification Sécurisé</h2>
-                <div class="feature-content">
-                    <div class="feature-image-grid">
-                        <img src="{{ url_for('static', filename='images/LOGIN.png') }}" alt="Page de connexion" class="img-fluid rounded shadow-lg">
-                        <img src="{{ url_for('static', filename='images/CREATION_DE_COMPTE_PAGE_LOGIN.png') }}" alt="Création de compte" class="img-fluid rounded shadow-lg">
-                    </div>
-                    <div class="feature-description">
-                        <h3>Gestion des Accès</h3>
-                        <div class="code-window">
-                            <pre><code class="language-python">@login_required
+                <!-- Authentication System -->
+                <div class="feature-block">
+                    <h2 class="section-title">Secure Authentication System</h2>
+                    <div class="feature-content">
+                        <div class="feature-image-grid">
+                            <img src="{{ url_for('static', filename='images/LOGIN.png') }}" alt="Login page" class="img-fluid rounded shadow-lg">
+                            <img src="{{ url_for('static', filename='images/CREATION_DE_COMPTE_PAGE_LOGIN.png') }}" alt="Account creation" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Access Control</h3>
+                            <div class="code-window">
+                                <pre><code class="language-python">@login_required
 @mixer_access_required
 def mixer():
-    """Protection des routes sensibles"""
+    """Protect sensitive routes"""
     return render_template('mixer.html')</code></pre>
+                            </div>
+                            <p>Complete user management system with different access levels and enhanced security.</p>
                         </div>
-                        <p>Système complet de gestion des utilisateurs avec différents niveaux d'accès et sécurité renforcée.</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Bibliothèque Musicale -->
-            <div class="feature-block">
-                <h2 class="section-title">Bibliothèque Musicale</h2>
-                <div class="feature-content">
-                    <div class="feature-image">
-                        <img src="{{ url_for('static', filename='images/liste_musique.png') }}" alt="Liste des musiques" class="img-fluid rounded shadow-lg">
-                    </div>
-                    <div class="feature-description">
-                        <h3>Gestion des Morceaux</h3>
-                        <div class="code-window">
-                            <pre><code class="language-javascript">// Analyse audio
+                <!-- Music Library -->
+                <div class="feature-block">
+                    <h2 class="section-title">Music Library</h2>
+                    <div class="feature-content">
+                        <div class="feature-image">
+                            <img src="{{ url_for('static', filename='images/liste_musique.png') }}" alt="Music list" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Track Management</h3>
+                            <div class="code-window">
+                                <pre><code class="language-javascript">// Audio analysis
 async function analyzeBPM(track) {
     const audioData = await loadAudioData(track.url);
     const tempo = detectBPM(audioData);
     updateTrackMetadata(track.id, { bpm: tempo });
 }</code></pre>
+                            </div>
+                            <p>Music library with automatic BPM analysis and smart organization.</p>
                         </div>
-                        <p>Bibliothèque musicale avec analyse automatique des BPM et organisation intelligente.</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Call to Action -->
-    <section class="cta-section">
-        <div class="container text-center">
-            <h2 class="section-title">Prêt à Mixer ?</h2>
-            <div class="cta-buttons">
-                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-glow btn-lg">
-                    <span class="material-icons">login</span>
-                    <span>Se connecter</span>
-                </a>
-                <a href="{{ url_for('main.index') }}" class="btn btn-outline-light btn-lg">
-                    <span class="material-icons">home</span>
-                    <span>Retour à l'accueil</span>
-                </a>
+        <!-- Call to Action -->
+        <section class="cta-section">
+            <div class="container text-center">
+                <h2 class="section-title">Ready to Mix?</h2>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-glow btn-lg">
+                        <span class="material-icons">login</span>
+                        <span>Login</span>
+                    </a>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-light btn-lg">
+                        <span class="material-icons">home</span>
+                        <span>Back to Home</span>
+                    </a>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
+</div>
+
+<!-- Contenu français (caché par défaut) -->
+<div id="content-fr" style="display: none;">
+    <div class="landing-details-container">
+        <!-- Section Hero -->
+        <section class="hero-section-details">
+            <div class="container">
+                <h1 class="text-center mb-5">
+                    <span class="gradient-text">Découvrez DJ Pro Studio</span>
+                </h1>
+                <p class="text-center hero-subtitle">Une suite complète d'outils pour les DJs professionnels</p>
+            </div>
+        </section>
+
+        <!-- Galerie des fonctionnalités -->
+        <section class="features-gallery">
+            <div class="container">
+                <!-- Interface de Mixage -->
+                <div class="feature-block">
+                    <h2 class="section-title">Interface de Mixage Professionnelle</h2>
+                    <div class="feature-content">
+                        <div class="feature-image">
+                            <img src="{{ url_for('static', filename='images/mixer.png') }}" alt="Interface de mixage" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Console de Mix Virtuelle</h3>
+                            <div class="code-window">
+                                <pre><code class="language-javascript">class DeckController {
+    constructor(id) {
+        this.audio = new Audio();
+        this.gainNode = audioContext.createGain();
+        this.analyserNode = audioContext.createAnalyser();
+        this.setupWaveform();
+    }
+
+    setupWaveform() {
+        this.analyserNode.fftSize = 2048;
+        this.bufferLength = this.analyserNode.frequencyBinCount;
+        this.dataArray = new Uint8Array(this.bufferLength);
+    }
+}</code></pre>
+                            </div>
+                            <p>Interface intuitive avec visualisation en temps réel des formes d'onde et contrôle précis du mix.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gestion des Playlists -->
+                <div class="feature-block">
+                    <h2 class="section-title">Gestion Avancée des Playlists</h2>
+                    <div class="feature-content">
+                        <div class="feature-image">
+                            <img src="{{ url_for('static', filename='images/playlist.png') }}" alt="Gestion des playlists" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Organisation Intelligente</h3>
+                            <div class="code-window">
+                                <pre><code class="language-javascript">// Gestion des playlists
+async function loadPlaylist(id) {
+    const tracks = await fetch(`/api/playlists/${id}/tracks`)
+        .then(r => r.json());
+
+    tracks.forEach(track => {
+        // Analyse BPM et métadonnées
+        analyzeBPM(track);
+        updateTrackInfo(track);
+    });
+}</code></pre>
+                            </div>
+                            <p>Organisez votre bibliothèque musicale avec des playlists personnalisées et une gestion intelligente des métadonnées.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Administration -->
+                <div class="feature-block">
+                    <h2 class="section-title">Interface d'Administration</h2>
+                    <div class="feature-content">
+                        <div class="feature-image-grid">
+                            <img src="{{ url_for('static', filename='images/PAGE_ADMINISTRATION.png') }}" alt="Page d'administration" class="img-fluid rounded shadow-lg">
+                            <img src="{{ url_for('static', filename='images/GESTION_DES_UTILISATEURS.png') }}" alt="Gestion des utilisateurs" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Gestion Complète des Utilisateurs</h3>
+                            <div class="code-window">
+                                <pre><code class="language-python">@admin.route('/users/create', methods=['POST'])
+@admin_required
+def create_user():
+    user = User(
+        username=request.form['username'],
+        email=request.form['email'],
+        is_active=True,
+        can_access_mixer=request.form.get('can_access_mixer', False)
+    )
+    db.session.add(user)
+    db.session.commit()</code></pre>
+                            </div>
+                            <p>Interface d'administration puissante pour gérer les utilisateurs et leurs permissions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Système d'Authentification -->
+                <div class="feature-block">
+                    <h2 class="section-title">Système d'Authentification Sécurisé</h2>
+                    <div class="feature-content">
+                        <div class="feature-image-grid">
+                            <img src="{{ url_for('static', filename='images/LOGIN.png') }}" alt="Page de connexion" class="img-fluid rounded shadow-lg">
+                            <img src="{{ url_for('static', filename='images/CREATION_DE_COMPTE_PAGE_LOGIN.png') }}" alt="Création de compte" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Gestion des Accès</h3>
+                            <div class="code-window">
+                                <pre><code class="language-python">@login_required
+@mixer_access_required
+def mixer():
+    """Protection des routes sensibles"""
+    return render_template('mixer.html')</code></pre>
+                            </div>
+                            <p>Système complet de gestion des utilisateurs avec différents niveaux d'accès et sécurité renforcée.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bibliothèque Musicale -->
+                <div class="feature-block">
+                    <h2 class="section-title">Bibliothèque Musicale</h2>
+                    <div class="feature-content">
+                        <div class="feature-image">
+                            <img src="{{ url_for('static', filename='images/liste_musique.png') }}" alt="Liste des musiques" class="img-fluid rounded shadow-lg">
+                        </div>
+                        <div class="feature-description">
+                            <h3>Gestion des Morceaux</h3>
+                            <div class="code-window">
+                                <pre><code class="language-javascript">// Analyse audio
+async function analyzeBPM(track) {
+    const audioData = await loadAudioData(track.url);
+    const tempo = detectBPM(audioData);
+    updateTrackMetadata(track.id, { bpm: tempo });
+}</code></pre>
+                            </div>
+                            <p>Bibliothèque musicale avec analyse automatique des BPM et organisation intelligente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="cta-section">
+            <div class="container text-center">
+                <h2 class="section-title">Prêt à Mixer ?</h2>
+                <div class="cta-buttons">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-glow btn-lg">
+                        <span class="material-icons">login</span>
+                        <span>Se connecter</span>
+                    </a>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-light btn-lg">
+                        <span class="material-icons">home</span>
+                        <span>Retour à l'accueil</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
 </div>
 
 <style>
+/* (Gardé ton CSS existant) */
 .landing-details-container {
     background: radial-gradient(circle at center, var(--bg-light) 0%, var(--bg-darker) 100%);
     min-height: 100vh;
@@ -326,6 +501,18 @@ async function analyzeBPM(track) {
     transform: translateY(-2px);
 }
 
+.language-switch {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 9999;
+}
+
+.language-switch button {
+    margin-left: 0.5rem;
+}
+
+/* Animation fadeInUp */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -355,4 +542,27 @@ async function analyzeBPM(track) {
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btnFr = document.getElementById('btn-fr');
+    const btnEn = document.getElementById('btn-en');
+    const contentFr = document.getElementById('content-fr');
+    const contentEn = document.getElementById('content-en');
+
+    btnFr.addEventListener('click', () => {
+        contentFr.style.display = 'block';
+        contentEn.style.display = 'none';
+        btnFr.style.display = 'none';
+        btnEn.style.display = 'inline-block';
+    });
+
+    btnEn.addEventListener('click', () => {
+        contentEn.style.display = 'block';
+        contentFr.style.display = 'none';
+        btnEn.style.display = 'none';
+        btnFr.style.display = 'inline-block';
+    });
+});
+</script>
 {% endblock %}
