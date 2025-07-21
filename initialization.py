@@ -216,7 +216,7 @@ def initialize_system():
             is_active=True,
             can_access_mixer=True,
         )
-        admin.set_password('Aimer7105*')
+        admin.set_password('*********')
         db.session.add(admin)
         db.session.commit()
         print("✅ Admin créé")
